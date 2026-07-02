@@ -2,60 +2,74 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>AuraOS | Advanced Intelligence Center</title>
+    <title>AuraOS | Multi-Niche AI Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .brain-card { background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.1), transparent); border: 1px solid rgba(255,255,255,0.05); }
-        .severity-Alta { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05); }
-        .severity-Média { border-left: 4px solid #f59e0b; background: rgba(245, 158, 11, 0.05); }
-        .severity-Informativa { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.05); }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        body { background: #020617; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
+        .niche-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .niche-card:hover { transform: translateY(-5px); border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
     </style>
 </head>
 <body class="p-8">
-    <div class="max-w-6xl mx-auto">
-        <header class="flex justify-between items-center mb-12">
+    <div class="max-w-7xl mx-auto">
+        <header class="flex justify-between items-end mb-12 border-b border-white/5 pb-8">
             <div>
-                <h1 class="text-4xl font-black tracking-tighter italic">AURA<span class="text-blue-600">.OS</span></h1>
-                <p class="text-blue-400/60 font-mono text-xs uppercase tracking-widest mt-1">Advanced Reasoning Engine v3.0</p>
+                <h1 class="text-6xl font-black tracking-tighter italic">AURA<span class="text-blue-600">.OS</span></h1>
+                <p class="text-blue-400 font-bold uppercase tracking-widest text-[10px] mt-2">Plataforma de Inteligência Setorial v4.0</p>
             </div>
-            <div class="text-right">
-                <p class="text-[10px] text-gray-500 font-bold uppercase">Maturidade do Cérebro</p>
-                <div class="flex items-center gap-2 mt-1">
-                    <div class="w-48 h-2 bg-gray-800 rounded-full overflow-hidden">
-                        <div id="maturity-bar" class="h-full bg-blue-600" style="width: 85%"></div>
-                    </div>
-                    <span id="knowledge-count" class="text-xs font-bold">0 Conhecimentos</span>
+            <div class="flex gap-8">
+                <div class="text-right">
+                    <p class="text-[10px] text-gray-500 font-bold uppercase">Conhecimento Global</p>
+                    <p id="total-k" class="text-3xl font-black">0</p>
+                </div>
+                <div class="text-right border-l border-white/10 pl-8">
+                    <p class="text-[10px] text-gray-500 font-bold uppercase">Nichos Ativos</p>
+                    <p id="active-n" class="text-3xl font-black text-blue-500">0</p>
                 </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Central de Comando -->
-            <div class="space-y-6">
-                <div class="brain-card p-6 rounded-3xl">
-                    <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4"></i> Entrada de Dados</h3>
-                    <textarea id="data-input" class="w-full h-40 bg-black/50 border border-white/10 rounded-2xl p-4 text-sm focus:border-blue-500 outline-none transition-all" placeholder="Digite uma conversa, decisão ou estratégia..."></textarea>
-                    <button onclick="processData()" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold transition shadow-lg shadow-blue-900/20">Analisar Contexto</button>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <!-- Seletor de Nichos -->
+            <div class="lg:col-span-4 space-y-6">
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest px-2">Injetar Pack de Inteligência</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="loadNiche('Healthcare')" class="glass p-4 rounded-2xl niche-card text-left">
+                        <i data-lucide="heart-pulse" class="w-6 h-6 mb-2 text-red-500"></i>
+                        <p class="text-xs font-bold">Saúde</p>
+                    </button>
+                    <button onclick="loadNiche('Legal')" class="glass p-4 rounded-2xl niche-card text-left">
+                        <i data-lucide="gavel" class="w-6 h-6 mb-2 text-amber-500"></i>
+                        <p class="text-xs font-bold">Jurídico</p>
+                    </button>
+                    <button onclick="loadNiche('E-commerce')" class="glass p-4 rounded-2xl niche-card text-left">
+                        <i data-lucide="shopping-cart" class="w-6 h-6 mb-2 text-green-500"></i>
+                        <p class="text-xs font-bold">E-commerce</p>
+                    </button>
+                    <button onclick="loadNiche('Fintech')" class="glass p-4 rounded-2xl niche-card text-left">
+                        <i data-lucide="landmark" class="w-6 h-6 mb-2 text-blue-500"></i>
+                        <p class="text-xs font-bold">Fintech</p>
+                    </button>
+                    <button onclick="loadNiche('Manufacturing')" class="glass p-4 rounded-2xl niche-card text-left">
+                        <i data-lucide="factory" class="w-6 h-6 mb-2 text-purple-500"></i>
+                        <p class="text-xs font-bold">Indústria</p>
+                    </button>
                 </div>
 
-                <div class="brain-card p-6 rounded-3xl opacity-50">
-                    <h3 class="font-bold mb-2 text-xs">Categorias Dominadas</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="text-[10px] bg-blue-500/10 px-2 py-1 rounded-md">Engenharia</span>
-                        <span class="text-[10px] bg-purple-500/10 px-2 py-1 rounded-md">Jurídico</span>
-                        <span class="text-[10px] bg-green-500/10 px-2 py-1 rounded-md">Financeiro</span>
-                        <span class="text-[10px] bg-amber-500/10 px-2 py-1 rounded-md">Estratégia</span>
-                        <span class="text-[10px] bg-red-500/10 px-2 py-1 rounded-md">RH</span>
-                    </div>
+                <div class="glass p-8 rounded-3xl mt-12">
+                    <h3 class="font-bold mb-4 flex items-center gap-2 italic">Analisar Contexto</h3>
+                    <textarea id="main-input" class="w-full h-48 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm focus:border-blue-500 outline-none transition-all" placeholder="Simule uma conversa ou documento do nicho escolhido..."></textarea>
+                    <button onclick="analyze()" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold transition shadow-xl shadow-blue-600/20">Processar Inteligência</button>
                 </div>
             </div>
 
-            <!-- Feed de Inteligência -->
-            <div class="lg:col-span-2 space-y-4">
-                <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest px-2">Feed de Análise em Tempo Real</h2>
-                <div id="intelligence-feed" class="space-y-4">
+            <!-- Dashboard de Resultados -->
+            <div class="lg:col-span-8 space-y-6">
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest px-2">Feed Global de Eventos</h2>
+                <div id="event-feed" class="space-y-4">
                     <!-- Dinâmico -->
                 </div>
             </div>
@@ -65,44 +79,53 @@
     <script>
         const API = "http://localhost:8000";
 
+        async function loadNiche(niche) {
+            await fetch(`${API}/load-niche`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({niche})
+            });
+            alert(`${niche} Pack de Inteligência Carregado!`);
+            updateStats();
+        }
+
         async function updateStats() {
             const res = await fetch(`${API}/stats`);
             const data = await res.json();
-            document.getElementById('knowledge-count').innerText = `${data.knowledge_base_size} Tópicos Aprendidos`;
-            
-            const feed = document.getElementById('intelligence-feed');
+            document.getElementById('total-k').innerText = data.total_knowledge;
+            document.getElementById('active-n').innerText = Object.keys(data.active_niches).length;
+
+            const feed = document.getElementById('event-feed');
             feed.innerHTML = data.history.map(item => `
-                <div class="p-6 rounded-3xl brain-card severity-${item.severity} transition-all">
-                    <div class="flex justify-between mb-4">
-                        <span class="text-[10px] font-bold px-2 py-1 bg-black/40 rounded italic">Input: "${item.input.substring(0, 50)}..."</span>
-                        <span class="text-[10px] font-mono text-gray-500">${item.ts}</span>
+                <div class="glass p-6 rounded-3xl border-l-4 ${item.severity === 'Alta' ? 'border-red-500 bg-red-500/5' : 'border-blue-500'}">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-[10px] font-black text-gray-500 font-mono italic">"${item.input.substring(0, 60)}..."</span>
+                        <span class="text-[10px] font-bold text-gray-600">${item.ts}</span>
                     </div>
-                    ${item.analysis.length > 0 ? 
-                        item.analysis.map(an => `
-                            <div class="mb-4 last:mb-0">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-xs font-black text-blue-400 uppercase tracking-tighter">${an.area} > ${an.topic}</span>
-                                    <span class="text-[8px] px-1 bg-white/5 rounded text-gray-400">${an.level}</span>
-                                </div>
-                                <p class="text-sm text-gray-300">${an.insight}</p>
+                    ${item.analysis.map(an => `
+                        <div class="mb-4 last:mb-0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">${an.niche.toUpperCase()}</span>
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">${an.area} > ${an.topic}</span>
                             </div>
-                        `).join('') 
-                        : '<p class="text-xs text-green-500 font-bold">✓ Fluxo limpo e em conformidade com as diretrizes aprendidas.</p>'
-                    }
+                            <p class="text-sm font-bold text-white mb-1 leading-tight">${an.insight}</p>
+                        </div>
+                    `).join('')}
+                    ${item.analysis.length === 0 ? '<p class="text-xs text-green-500 font-bold italic">✓ CONFORMIDADE TOTAL: Nenhuma violação detectada nos nichos ativos.</p>' : ''}
                 </div>
             `).join('');
             lucide.createIcons();
         }
 
-        async function processData() {
-            const text = document.getElementById('data-input').value;
+        async function analyze() {
+            const text = document.getElementById('main-input').value;
             if(!text) return;
             await fetch(`${API}/analyze`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({text})
             });
-            document.getElementById('data-input').value = "";
+            document.getElementById('main-input').value = "";
             updateStats();
         }
 
