@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>AuraOS | Intelligence Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f1115; color: #e2e8f0; font-family: sans-serif; }
+        .sidebar { background: #0a0c0f; }
+        .card { background: #1a1d23; border: 1px solid #2d3748; }
+        .insight-pill { background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; }
+    </style>
+</head>
+<body class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 sidebar p-6 flex flex-col">
+        <div class="text-xl font-bold mb-10 tracking-tight">AURA<span class="text-blue-500">OS</span></div>
+        <nav class="space-y-4 flex-1">
+            <a href="#" class="block p-3 rounded bg-blue-600/10 text-blue-400 font-medium">Dashboard</a>
+            <a href="#" class="block p-3 rounded hover:bg-white/5 text-gray-400">Memória Viva</a>
+            <a href="#" class="block p-3 rounded hover:bg-white/5 text-gray-400">Agentes de Reunião</a>
+            <a href="#" class="block p-3 rounded hover:bg-white/5 text-gray-400">Configurações</a>
+        </nav>
+        <div class="mt-auto p-4 card rounded-xl text-xs">
+            <p class="text-gray-500 mb-2">Sincronização Ativa</p>
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span>Conectado a 14 apps</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-8">
+        <header class="flex justify-between items-center mb-10">
+            <h1 class="text-3xl font-bold">Visão Geral da Inteligência</h1>
+            <div class="flex gap-4">
+                <input type="text" placeholder="Pergunte à memória da empresa..." class="bg-[#1a1d23] border border-gray-700 rounded-lg px-4 py-2 w-80 outline-none focus:border-blue-500">
+                <div class="w-10 h-10 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full"></div>
+            </div>
+        </header>
+
+        <!-- Insights Proativos -->
+        <section class="mb-10">
+            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4">Insights de Hoje</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="insight-pill p-4 rounded-r-xl">
+                    <span class="text-xs font-bold text-blue-400">DUPLICIDADE DETECTADA</span>
+                    <p class="mt-1 text-sm">O Time de Design está criando um logo para "Projeto Alpha", mas o Time de Marketing já finalizou isso ontem no Google Drive.</p>
+                </div>
+                <div class="insight-pill p-4 rounded-r-xl border-l-yellow-500 bg-yellow-500/10">
+                    <span class="text-xs font-bold text-yellow-500">RISCO DE COMPLIANCE</span>
+                    <p class="mt-1 text-sm">Uma conversa no Slack mencionou compartilhamento de credenciais. Recomendamos revogar a chave API XYZ.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Grid de Apps -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="card p-6 rounded-2xl col-span-2">
+                <h3 class="font-bold mb-6">Fluxo de Conhecimento (Últimas 24h)</h3>
+                <div class="h-64 flex items-end justify-between gap-2 px-2">
+                    <!-- Simulação de Gráfico -->
+                    <div class="w-full bg-blue-500/20 rounded-t h-1/2"></div>
+                    <div class="w-full bg-blue-500/40 rounded-t h-3/4"></div>
+                    <div class="w-full bg-blue-500/60 rounded-t h-full"></div>
+                    <div class="w-full bg-blue-500/30 rounded-t h-2/3"></div>
+                    <div class="w-full bg-blue-500/50 rounded-t h-5/6"></div>
+                    <div class="w-full bg-blue-600 rounded-t h-3/4"></div>
+                </div>
+            </div>
+            <div class="card p-6 rounded-2xl">
+                <h3 class="font-bold mb-6">Top Experts (Knowledge Graph)</h3>
+                <ul class="space-y-4">
+                    <li class="flex justify-between items-center">
+                        <span class="text-sm">Ana Silva (Arquitetura)</span>
+                        <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Alta Influência</span>
+                    </li>
+                    <li class="flex justify-between items-center">
+                        <span class="text-sm">Bruno Costa (Vendas)</span>
+                        <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Conector</span>
+                    </li>
+                    <li class="flex justify-between items-center">
+                        <span class="text-sm">Carla Dias (Jurídico)</span>
+                        <span class="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Detentora de Info</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

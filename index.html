@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraOS | A Memória Coletiva da sua Empresa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #050505; color: white; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gradient-text { background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-glow { position: absolute; top: -10%; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(79, 172, 254, 0.15) 0%, transparent 70%); z-index: -1; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+    <div class="hero-glow"></div>
+    
+    <nav class="flex justify-between items-center p-8 max-w-7xl mx-auto">
+        <div class="text-2xl font-bold tracking-tighter">AURA<span class="text-blue-500">OS</span></div>
+        <div class="space-x-8 text-sm text-gray-400 uppercase tracking-widest hidden md:flex">
+            <a href="#" class="hover:text-white transition">Produto</a>
+            <a href="#" class="hover:text-white transition">Segurança</a>
+            <a href="#" class="hover:text-white transition">Preços</a>
+        </div>
+        <button class="bg-white text-black px-6 py-2 rounded-full font-semibold hover:bg-blue-400 transition">Agendar Demo</button>
+    </nav>
+
+    <header class="max-w-5xl mx-auto text-center mt-24 px-6">
+        <span class="text-blue-400 text-sm font-semibold tracking-widest uppercase">Inteligência Artificial de 4ª Geração</span>
+        <h1 class="text-6xl md:text-8xl font-extrabold mt-6 leading-tight">Sua empresa nunca mais vai <span class="gradient-text">esquecer nada.</span></h1>
+        <p class="text-xl text-gray-400 mt-8 max-w-2xl mx-auto leading-relaxed">
+            O AuraOS é a camada de inteligência que conecta Slack, Jira e Meet para criar uma memória viva. Impeça erros repetidos e acelere o onboarding em 10x.
+        </p>
+        <div class="mt-12 space-x-4">
+            <button class="bg-blue-600 px-8 py-4 rounded-xl text-lg font-bold hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.4)]">Começar Agora</button>
+            <button class="glass px-8 py-4 rounded-xl text-lg font-bold">Ver Vídeo</button>
+        </div>
+    </header>
+
+    <section class="max-w-7xl mx-auto mt-32 px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="glass p-8 rounded-3xl">
+            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-6 text-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-4">Síntese Ativa</h3>
+            <p class="text-gray-400">O AuraOS ouve suas reuniões e lê seus chats para gerar insights proativos antes mesmo de você pedir.</p>
+        </div>
+        <div class="glass p-8 rounded-3xl">
+            <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-6 text-purple-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-4">Privacidade Nível Banco</h3>
+            <h3 class="text-xl font-bold mb-4">Privacidade Nível Banco</h3>
+            <p class="text-gray-400">Seus dados são criptografados e processados localmente. Nós não treinamos nossos modelos com seus segredos.</p>
+        </div>
+        <div class="glass p-8 rounded-3xl">
+            <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-6 text-green-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-4">ROI Mensurável</h3>
+            <p class="text-gray-400">Reduza em 30% o tempo perdido em busca de informação. AuraOS se paga na primeira semana.</p>
+        </div>
+    </section>
+
+    <footer class="mt-32 p-12 text-center text-gray-600 border-t border-white/5">
+        &copy; 2026 AuraOS Technologies. Todos os direitos reservados.
+    </footer>
+</body>
+</html>

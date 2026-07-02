@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>AuraOS | Live Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background: #050505; color: #e2e8f0; font-family: sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .alert-anim { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.1); }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tighter text-white">AURA<span class="text-blue-500">OS</span></h1>
+                <p class="text-gray-500">Modo de Teste Local Ativo</p>
+            </div>
+            <div class="flex gap-4">
+                <div class="glass p-3 rounded-xl text-xs">
+                    <span class="text-green-500">●</span> Servidor: <span id="server-status">Conectando...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Coluna 1: Input de Teste -->
+            <div class="space-y-6">
+                <div class="glass p-6 rounded-3xl">
+                    <h2 class="text-lg font-bold mb-4">Simular Chat/Email</h2>
+                    <p class="text-xs text-gray-500 mb-4">Envie uma mensagem para ver como a IA detecta erros em tempo real.</p>
+                    <textarea id="chat-input" class="w-full h-32 bg-black/50 border border-white/10 rounded-xl p-4 text-sm focus:border-blue-500 outline-none" placeholder="Ex: Vamos usar AWS nesse projeto com 25% de desconto?"></textarea>
+                    <button onclick="analyzeMessage()" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold transition">Analisar Fluxo</button>
+                </div>
+
+                <div class="glass p-6 rounded-3xl">
+                    <h2 class="text-lg font-bold mb-4">Memória Atual</h2>
+                    <div id="knowledge-list" class="space-y-3 text-xs">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna 2 e 3: Logs e Alertas -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="glass p-6 rounded-3xl min-h-[500px]">
+                    <h2 class="text-lg font-bold mb-6">Monitoramento de Conflitos (Real-time)</h2>
+                    <div id="log-container" class="space-y-4">
+                        <p class="text-gray-600 text-center py-20 italic">Aguardando atividade no fluxo de dados...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8000";
+
+        async function updateStatus() {
+            try {
+                const res = await fetch(`${API_URL}/knowledge`);
+                if (res.ok) {
+                    document.getElementById('server-status').innerText = "Online";
+                    document.getElementById('server-status').className = "text-green-500";
+                    loadKnowledge();
+                }
+            } catch {
+                document.getElementById('server-status').innerText = "Offline (Execute server.py)";
+                document.getElementById('server-status').className = "text-red-500";
+            }
+        }
+
+        async function loadKnowledge() {
+            const res = await fetch(`${API_URL}/knowledge`);
+            const data = await res.json();
+            const list = document.getElementById('knowledge-list');
+            list.innerHTML = data.map(k => `
+                <div class="p-3 bg-white/5 rounded-lg border border-white/5">
+                    <p class="font-bold text-blue-400">${k.topic}</p>
+                    <p class="text-gray-400">${k.content}</p>
+                </div>
+            `).join('');
+        }
+
+        async function analyzeMessage() {
+            const text = document.getElementById('chat-input').value;
+            if (!text) return;
+
+            const res = await fetch(`${API_URL}/analyze`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, source: "Web Demo" })
+            });
+            
+            document.getElementById('chat-input').value = "";
+            loadLogs();
+        }
+
+        async function loadLogs() {
+            const res = await fetch(`${API_URL}/logs`);
+            const data = await res.json();
+            const container = document.getElementById('log-container');
+            
+            container.innerHTML = data.map(log => `
+                <div class="p-4 rounded-2xl ${log.alert ? 'alert-anim' : 'bg-white/5'} border border-white/5">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-[10px] font-bold tracking-widest uppercase ${log.alert ? 'text-red-400' : 'text-gray-500'}">${log.status}</span>
+                        <span class="text-[10px] text-gray-600">${log.timestamp}</span>
+                    </div>
+                    <p class="text-sm">"${log.text}"</p>
+                    ${log.alert ? `<p class="mt-3 text-sm text-red-400 font-bold"><i data-lucide="alert-circle" class="inline w-4 h-4 mr-2"></i>${log.alert}</p>` : ''}
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        setInterval(updateStatus, 3000);
+        updateStatus();
+        loadLogs();
+    </script>
+</body>
+</html>
