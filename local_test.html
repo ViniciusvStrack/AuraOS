@@ -2,83 +2,61 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AuraOS v2 | Inteligência Corporativa</title>
+    <title>AuraOS | Advanced Intelligence Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #0a0a0c; color: #e4e4e7; }
-        .glass { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
-        .accent-gradient { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); }
-        .conflict-card { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05); }
-        .clean-card { border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05); }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-slide { animation: slideIn 0.3s ease-out forwards; }
+        body { background: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .brain-card { background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.1), transparent); border: 1px solid rgba(255,255,255,0.05); }
+        .severity-Alta { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05); }
+        .severity-Média { border-left: 4px solid #f59e0b; background: rgba(245, 158, 11, 0.05); }
+        .severity-Informativa { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.05); }
     </style>
 </head>
-<body class="p-6 md:p-12">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+<body class="p-8">
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-12">
             <div>
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span class="text-xs font-bold tracking-widest text-blue-500 uppercase">Sistema Ativo</span>
-                </div>
-                <h1 class="text-5xl font-extrabold tracking-tighter text-white">Aura<span class="text-blue-600 text-6xl">.</span>OS</h1>
+                <h1 class="text-4xl font-black tracking-tighter italic">AURA<span class="text-blue-600">.OS</span></h1>
+                <p class="text-blue-400/60 font-mono text-xs uppercase tracking-widest mt-1">Advanced Reasoning Engine v3.0</p>
             </div>
-            <div class="flex gap-4">
-                <div class="glass px-6 py-3 rounded-2xl">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold">Total Processado</p>
-                    <p id="stat-total" class="text-2xl font-bold">0</p>
-                </div>
-                <div class="glass px-6 py-3 rounded-2xl">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold">Conflitos Evitados</p>
-                    <p id="stat-conflicts" class="text-2xl font-bold text-red-400">0</p>
+            <div class="text-right">
+                <p class="text-[10px] text-gray-500 font-bold uppercase">Maturidade do Cérebro</p>
+                <div class="flex items-center gap-2 mt-1">
+                    <div class="w-48 h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div id="maturity-bar" class="h-full bg-blue-600" style="width: 85%"></div>
+                    </div>
+                    <span id="knowledge-count" class="text-xs font-bold">0 Conhecimentos</span>
                 </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- Sidebar: Inputs e Ensinamentos -->
-            <div class="lg:col-span-4 space-y-8">
-                <!-- Analisador -->
-                <div class="glass p-8 rounded-3xl shadow-2xl">
-                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
-                        <i data-lucide="brain-circuit" class="text-blue-500"></i> Analisar Fluxo
-                    </h3>
-                    <textarea id="main-input" class="w-full h-40 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Cole aqui um chat do Slack, email ou transcrição..."></textarea>
-                    <button onclick="runAnalysis()" class="w-full mt-4 accent-gradient hover:opacity-90 text-white py-4 rounded-2xl font-bold text-lg shadow-lg transition transform active:scale-95">
-                        Executar Inteligência
-                    </button>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Central de Comando -->
+            <div class="space-y-6">
+                <div class="brain-card p-6 rounded-3xl">
+                    <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4"></i> Entrada de Dados</h3>
+                    <textarea id="data-input" class="w-full h-40 bg-black/50 border border-white/10 rounded-2xl p-4 text-sm focus:border-blue-500 outline-none transition-all" placeholder="Digite uma conversa, decisão ou estratégia..."></textarea>
+                    <button onclick="processData()" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold transition shadow-lg shadow-blue-900/20">Analisar Contexto</button>
                 </div>
 
-                <!-- Ensinar a IA -->
-                <div class="glass p-8 rounded-3xl">
-                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                        <i data-lucide="graduation-cap" class="text-purple-500"></i> Ensinar Regra
-                    </h3>
-                    <div class="space-y-3">
-                        <input id="teach-cat" type="text" placeholder="Categoria (ex: Jurídico)" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-purple-500">
-                        <textarea id="teach-content" placeholder="O que a IA deve lembrar?" class="w-full h-20 bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-purple-500"></textarea>
-                        <button onclick="teachAI()" class="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">Gravar na Memória</button>
+                <div class="brain-card p-6 rounded-3xl opacity-50">
+                    <h3 class="font-bold mb-2 text-xs">Categorias Dominadas</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-[10px] bg-blue-500/10 px-2 py-1 rounded-md">Engenharia</span>
+                        <span class="text-[10px] bg-purple-500/10 px-2 py-1 rounded-md">Jurídico</span>
+                        <span class="text-[10px] bg-green-500/10 px-2 py-1 rounded-md">Financeiro</span>
+                        <span class="text-[10px] bg-amber-500/10 px-2 py-1 rounded-md">Estratégia</span>
+                        <span class="text-[10px] bg-red-500/10 px-2 py-1 rounded-md">RH</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Feed Central -->
-            <div class="lg:col-span-8 space-y-6">
-                <div class="glass p-8 rounded-3xl min-h-[600px]">
-                    <div class="flex justify-between items-center mb-8">
-                        <h3 class="text-xl font-bold">Monitoramento Cognitivo</h3>
-                        <div class="flex gap-2">
-                            <span class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold">LIVE FEED</span>
-                        </div>
-                    </div>
-                    <div id="logs-feed" class="space-y-4">
-                        <!-- Logs dinâmicos -->
-                    </div>
+            <!-- Feed de Inteligência -->
+            <div class="lg:col-span-2 space-y-4">
+                <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest px-2">Feed de Análise em Tempo Real</h2>
+                <div id="intelligence-feed" class="space-y-4">
+                    <!-- Dinâmico -->
                 </div>
             </div>
         </div>
@@ -87,70 +65,49 @@
     <script>
         const API = "http://localhost:8000";
 
-        async function refreshDashboard() {
-            const res = await fetch(`${API}/dashboard-data`);
+        async function updateStats() {
+            const res = await fetch(`${API}/stats`);
             const data = await res.json();
+            document.getElementById('knowledge-count').innerText = `${data.knowledge_base_size} Tópicos Aprendidos`;
             
-            document.getElementById('stat-total').innerText = data.stats.total_processed;
-            document.getElementById('stat-conflicts').innerText = data.stats.conflicts_found;
-
-            const feed = document.getElementById('logs-feed');
-            if (data.history.length === 0) {
-                feed.innerHTML = '<div class="text-center py-20 text-gray-600 italic">Aguardando sinais...</div>';
-                return;
-            }
-
-            feed.innerHTML = data.history.map(log => `
-                <div class="p-6 rounded-2xl animate-slide ${log.conflicts.length > 0 ? 'conflict-card' : 'clean-card'}">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="text-[10px] font-black tracking-widest uppercase ${log.conflicts.length > 0 ? 'text-red-400' : 'text-green-400'}">
-                            ${log.status}
-                        </span>
-                        <span class="text-[10px] text-gray-500 font-mono">${log.timestamp}</span>
+            const feed = document.getElementById('intelligence-feed');
+            feed.innerHTML = data.history.map(item => `
+                <div class="p-6 rounded-3xl brain-card severity-${item.severity} transition-all">
+                    <div class="flex justify-between mb-4">
+                        <span class="text-[10px] font-bold px-2 py-1 bg-black/40 rounded italic">Input: "${item.input.substring(0, 50)}..."</span>
+                        <span class="text-[10px] font-mono text-gray-500">${item.ts}</span>
                     </div>
-                    <p class="text-sm text-gray-200 mb-4 leading-relaxed">"${log.input}"</p>
-                    ${log.conflicts.map(c => `
-                        <div class="mt-3 p-3 bg-red-500/10 rounded-xl border border-red-500/20">
-                            <div class="flex items-center gap-2 text-xs font-bold text-red-400 mb-1">
-                                <i data-lucide="alert-circle" class="w-3 h-3"></i> VIOLAÇÃO DE ${c.category.toUpperCase()}
+                    ${item.analysis.length > 0 ? 
+                        item.analysis.map(an => `
+                            <div class="mb-4 last:mb-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-black text-blue-400 uppercase tracking-tighter">${an.area} > ${an.topic}</span>
+                                    <span class="text-[8px] px-1 bg-white/5 rounded text-gray-400">${an.level}</span>
+                                </div>
+                                <p class="text-sm text-gray-300">${an.insight}</p>
                             </div>
-                            <p class="text-xs text-red-300/80">${c.content}</p>
-                        </div>
-                    `).join('')}
+                        `).join('') 
+                        : '<p class="text-xs text-green-500 font-bold">✓ Fluxo limpo e em conformidade com as diretrizes aprendidas.</p>'
+                    }
                 </div>
             `).join('');
             lucide.createIcons();
         }
 
-        async function runAnalysis() {
-            const text = document.getElementById('main-input').value;
-            if (!text) return;
+        async function processData() {
+            const text = document.getElementById('data-input').value;
+            if(!text) return;
             await fetch(`${API}/analyze`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({text})
             });
-            document.getElementById('main-input').value = "";
-            refreshDashboard();
+            document.getElementById('data-input').value = "";
+            updateStats();
         }
 
-        async function teachAI() {
-            const category = document.getElementById('teach-cat').value;
-            const content = document.getElementById('teach-content').value;
-            if (!category || !content) return;
-            await fetch(`${API}/teach`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({category, content, severity: "Alta"})
-            });
-            alert("Memória Atualizada!");
-            document.getElementById('teach-cat').value = "";
-            document.getElementById('teach-content').value = "";
-            refreshDashboard();
-        }
-
-        setInterval(refreshDashboard, 5000);
-        refreshDashboard();
+        setInterval(updateStats, 5000);
+        updateStats();
     </script>
 </body>
 </html>

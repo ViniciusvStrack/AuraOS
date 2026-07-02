@@ -1,145 +1,120 @@
 import sqlite3
+import re
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
-import re
-import uvicorn
 
 app = FastAPI()
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# --- CORE DA INTELIGÊNCIA ---
+class AuraBrain:
+    def __init__(self):
+        self.db = 'aura_memory.db'
+        self._init_db()
 
-# --- BANCO DE DADOS (MEMÓRIA DE LONGO PRAZO) ---
-def init_db():
-    conn = sqlite3.connect('aura_memory.db')
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS rules 
-                      (id INTEGER PRIMARY KEY, category TEXT, content TEXT, severity TEXT, impact_score INTEGER)''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS logs 
-                      (id INTEGER PRIMARY KEY, timestamp TEXT, input TEXT, status TEXT, conflicts TEXT)''')
-    
-    # Regras Iniciais de "Educação"
-    cursor.execute("SELECT count(*) FROM rules")
-    if cursor.fetchone()[0] == 0:
-        initial_rules = [
-            ("Arquitetura", "A empresa utiliza exclusivamente Google Cloud (GCP). AWS/Azure são proibidos por compliance.", "Crítica", 10),
-            ("Comercial", "Descontos acima de 15% exigem assinatura digital do CFO.", "Alta", 8),
-            ("Comunicação", "Informações sobre salários ou bônus não devem ser discutidas em canais abertos.", "Alta", 9),
-            ("Segurança", "Chaves de API e senhas nunca devem ser postadas em texto claro.", "Crítica", 10)
+    def _init_db(self):
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+        cursor.execute('''CREATE TABLE IF NOT EXISTS knowledge 
+                          (id INTEGER PRIMARY KEY, area TEXT, topic TEXT, content TEXT, level TEXT, weight INTEGER)''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS interactions 
+                          (id INTEGER PRIMARY KEY, ts TEXT, input TEXT, analysis TEXT, severity TEXT)''')
+        conn.commit()
+        conn.close()
+
+    def inject_curriculum(self):
+        """Injeta o conhecimento do básico ao avançado"""
+        curriculum = [
+            # NÍVEL: BÁSICO (Operação)
+            ("Operações", "Ponto Eletrônico", "O registro de ponto deve ser feito no início e fim da jornada. Esquecimentos devem ser justificados em 24h.", "Básico", 5),
+            ("TI", "Senhas", "Senhas devem ter 12+ caracteres, símbolos e nunca serem compartilhadas via chat.", "Básico", 10),
+            
+            # NÍVEL: INTERMEDIÁRIO (Processos)
+            ("Engenharia", "Code Review", "Nenhum código vai para produção sem revisão de pelo menos dois desenvolvedores seniores.", "Intermediário", 8),
+            ("Jurídico", "LGPD", "Dados sensíveis de clientes (CPF, Endereço) devem ser criptografados e nunca exportados em CSV.", "Intermediário", 9),
+            
+            # NÍVEL: AVANÇADO (Estratégia e Risco)
+            ("Estratégia", "M&A", "Qualquer menção a fusões ou aquisições é confidencial nível 1. Discutir isso fora de salas protegidas é infração grave.", "Avançado", 10),
+            ("Financeiro", "Burn Rate", "Se o gasto mensal exceder 500k USD, todos os novos contratos de ferramentas SaaS devem ser congelados.", "Avançado", 9),
+            ("Arquitetura", "Microserviços", "Projetos novos devem seguir a arquitetura de Event-Driven. Monólitos estão proibidos.", "Avançado", 7)
         ]
-        cursor.executemany("INSERT INTO rules (category, content, severity, impact_score) VALUES (?,?,?,?)", initial_rules)
-    conn.commit()
-    conn.close()
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM knowledge") # Limpa para o novo currículo
+        cursor.executemany("INSERT INTO knowledge (area, topic, content, level, weight) VALUES (?,?,?,?,?)", curriculum)
+        conn.commit()
+        conn.close()
 
-init_db()
+    def analyze(self, text):
+        text_low = text.lower()
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT area, topic, content, level, weight FROM knowledge")
+        all_knowledge = cursor.fetchall()
+        
+        found_issues = []
+        highest_severity = "Baixa"
 
-# --- MODELOS DE DADOS ---
-class AnalysisRequest(BaseModel):
+        for area, topic, content, level, weight in all_knowledge:
+            # Algoritmo de Correspondência de Conceitos
+            keywords = set(re.findall(r'\w+', content.lower() + " " + topic.lower()))
+            input_words = set(re.findall(r'\w+', text_low))
+            
+            match_score = len(keywords.intersection(input_words))
+            
+            # Se a IA identificar que o usuário está falando de um tópico proibido ou sensível
+            if match_score >= 2:
+                severity = "Crítica" if weight >= 9 else "Média" if weight >= 6 else "Informativa"
+                found_issues.append({
+                    "area": area,
+                    "topic": topic,
+                    "insight": content,
+                    "level": level,
+                    "severity": severity
+                })
+                if weight > 8: highest_severity = "Alta"
+
+        conn.close()
+        return found_issues, highest_severity
+
+brain = AuraBrain()
+brain.inject_curriculum()
+
+# --- API ENDPOINTS ---
+class InputData(BaseModel):
     text: str
 
-class NewRule(BaseModel):
-    category: str
-    content: str
-    severity: str
-
-# --- MOTOR DE INTELIGÊNCIA APRIMORADO ---
-def smart_analyzer(text):
-    text = text.lower()
-    conn = sqlite3.connect('aura_memory.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT category, content, severity FROM rules")
-    rules = cursor.fetchall()
-    
-    found_conflicts = []
-    
-    # Análise por "Gatilhos de Intenção"
-    for category, content, severity in rules:
-        # Criamos um set de palavras-chave da regra (removendo stop words simples)
-        keywords = set(re.findall(r'\w+', content.lower()))
-        input_words = set(re.findall(r'\w+', text))
-        
-        # Intersecção Semântica: Se o texto do usuário compartilha conceitos chave com a regra
-        match_score = len(keywords.intersection(input_words))
-        
-        # Lógica específica para valores numéricos (Descontos)
-        if "desconto" in text or "%" in text:
-            numbers = re.findall(r'\d+', text)
-            if numbers and int(numbers[0]) > 15 and category == "Comercial":
-                found_conflicts.append({"category": category, "content": content, "severity": severity})
-                continue
-
-        # Lógica para Nuvem
-        if any(cloud in text for cloud in ["aws", "azure", "amazon", "lambda"]) and category == "Arquitetura":
-            found_conflicts.append({"category": category, "content": content, "severity": severity})
-            continue
-
-        # Se houver uma sobreposição forte de palavras (Simulando aprendizado de contexto)
-        if match_score >= 3: 
-            found_conflicts.append({"category": category, "content": content, "severity": severity})
-
-    conn.close()
-    return found_conflicts
-
-# --- ENDPOINTS ---
 @app.post("/analyze")
-async def analyze(req: AnalysisRequest):
-    conflicts = smart_analyzer(req.text)
-    status = "ALERTA" if conflicts else "LIMPO"
+async def analyze_api(data: InputData):
+    issues, severity = brain.analyze(data.text)
     
     conn = sqlite3.connect('aura_memory.db')
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO logs (timestamp, input, status, conflicts) VALUES (?,?,?,?)",
-                   (datetime.now().strftime("%H:%M:%S"), req.text, status, str(conflicts)))
+    cursor.execute("INSERT INTO interactions (ts, input, analysis, severity) VALUES (?,?,?,?)",
+                   (datetime.now().strftime("%H:%M:%S"), data.text, str(issues), severity))
     conn.commit()
     conn.close()
     
-    return {"status": status, "conflicts": conflicts, "timestamp": datetime.now().strftime("%H:%M:%S")}
+    return {"analysis": issues, "overall_severity": severity}
 
-@app.get("/dashboard-data")
-async def get_data():
+@app.get("/stats")
+async def get_stats():
     conn = sqlite3.connect('aura_memory.db')
     cursor = conn.cursor()
+    cursor.execute("SELECT count(*) FROM knowledge")
+    k_count = cursor.fetchone()[0]
+    cursor.execute("SELECT * FROM interactions ORDER BY id DESC LIMIT 10")
+    recent = cursor.fetchall()
+    conn.close()
     
-    cursor.execute("SELECT * FROM logs ORDER BY id DESC LIMIT 10")
-    logs_raw = cursor.fetchall()
-    
-    cursor.execute("SELECT count(*) FROM logs")
-    total = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT count(*) FROM rules")
-    rules_count = cursor.fetchone()[0]
-    
-    # Formata os logs para o frontend
-    history = []
-    for l in logs_raw:
-        history.append({
-            "timestamp": l[1],
-            "input": l[2],
-            "status": l[3],
-            "conflicts": eval(l[4]) # Converte string de volta para lista
-        })
+    formatted_history = []
+    for r in recent:
+        formatted_history.append({"ts": r[1], "input": r[2], "analysis": eval(r[3]), "severity": r[4]})
         
-    conn.close()
-    return {
-        "stats": {"total": total, "rules": rules_count},
-        "history": history
-    }
-
-@app.post("/teach")
-async def teach(rule: NewRule):
-    conn = sqlite3.connect('aura_memory.db')
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO rules (category, content, severity, impact_score) VALUES (?,?,?,?)",
-                   (rule.category, rule.content, rule.severity, 5))
-    conn.commit()
-    conn.close()
-    return {"message": "Conhecimento assimilado."}
+    return {"knowledge_base_size": k_count, "history": formatted_history}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
