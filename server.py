@@ -10,131 +10,104 @@ from datetime import datetime
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-# --- DEFINIÇÃO DOS NICHOS (O "Cérebro Universal") ---
-NICHE_PACKS = {
-    "Healthcare": [
-        ("Privacidade", "HIPAA", "Dados de pacientes nunca devem ser compartilhados via chat sem criptografia de ponta a ponta.", 10),
-        ("Protocolo", "Prescrição", "Prescrições médicas só podem ser validadas com assinatura digital padrão ICP-Brasil.", 9),
-        ("Ética", "Prontuário", "O acesso a prontuários por funcionários sem relação direta com o tratamento é falta grave.", 10)
+# --- BASE DE CONHECIMENTO MÉDICO (AuraMed Core) ---
+MEDICAL_KNOWLEDGE = {
+    "Interações": [
+        ("Farmacologia", "Varfarina + AAS", "Risco altíssimo de hemorragia. Evitar associação ou monitorar INR rigidamente.", 10),
+        ("Farmacologia", "Sildenafila + Nitratos", "Risco de hipotensão severa e óbito. Associação contraindicada.", 10),
+        ("Farmacologia", "Digoxina + Furosemida", "Risco de toxicidade digitálica por hipocalemia.", 8)
     ],
-    "Legal": [
-        ("Ética", "Sigilo Profissional", "Discussões sobre casos ativos em áreas comuns ou chats abertos violam o sigilo advogado-cliente.", 10),
-        ("Compliance", "Prazos Processuais", "A menção a prazos fatais deve gerar um alerta imediato para o gestor da conta.", 8),
-        ("Documentação", "Contratos", "Cláusulas de rescisão sem aviso prévio de 30 dias não são permitidas nos modelos da firma.", 7)
+    "Protocolos": [
+        ("Emergência", "Protocolo de Sepse", "Febre + Hipotensão + Taquicardia: Iniciar protocolo de sepse (Lactato, Hemoculturas, Antibiótico na 1ª hora).", 10),
+        ("Cardiologia", "IAM com Supra", "Tempo porta-balão deve ser inferior a 90 minutos. Iniciar AAS + Clopidogrel imediatamente.", 10),
+        ("Neurologia", "AVC Isquêmico", "Janela de trombólise é de até 4.5 horas do início dos sintomas. Realizar TC de crânio urgente.", 10)
     ],
-    "E-commerce": [
-        ("Fraude", "Chargeback", "Transações acima de R$ 5.000 com cartões emitidos no exterior devem passar por análise manual.", 9),
-        ("Logística", "SLA de Entrega", "Promessas de entrega em menos de 24h para a Região Norte são proibidas por inviabilidade logística.", 8),
-        ("Pagamentos", "PCI-DSS", "Nunca armazene o código CVV ou dados completos do cartão em logs de transação.", 10)
+    "Diagnóstico": [
+        ("Sintomas", "Dengue", "Febre alta, dor retro-orbital, mialgia. Alerta para sinais de alarme: dor abdominal intensa, vômitos persistentes.", 8),
+        ("Sintomas", "Diabetes Mellitus", "Poliúria, polidipsia, perda de peso. Glicemia de jejum > 126 mg/dL em duas ocasiões.", 7),
+        ("Sintomas", "Apendicite", "Dor que inicia na região periumbilical e migra para fossa ilíaca direita. Sinal de Blumberg positivo.", 9)
     ],
-    "Manufacturing": [
-        ("Segurança", "NR-12", "Qualquer manutenção em máquinas deve ser precedida pelo protocolo de bloqueio e etiquetagem (LOTO).", 10),
-        ("Qualidade", "Six Sigma", "Desvios acima de 0.5% na linha de produção devem interromper o lote imediatamente.", 9),
-        ("Operação", "Turnos", "A troca de turno deve incluir obrigatoriamente o relatório de anomalias térmicas.", 7)
-    ],
-    "Fintech": [
-        ("Compliance", "KYC", "Contas sem documento de identidade validado não podem realizar transferências acima de R$ 1.000.", 10),
-        ("Risco", "Crédito", "Aumentos de limite para clientes com Score abaixo de 400 devem ser bloqueados automaticamente.", 9),
-        ("Segurança", "Open Banking", "O compartilhamento de tokens de consentimento deve ser revogado a cada 90 dias.", 8)
+    "Cuidados de Enfermagem": [
+        ("Procedimento", "Sonda Vesical", "Manter bolsa coletora abaixo do nível da bexiga para evitar infecção urinária retrógrada.", 8),
+        ("Procedimento", "Acesso Central", "Monitorar sinais de flogose e curativo estéril. Troca conforme protocolo da CCIH.", 7)
     ]
 }
 
-class AuraBrain:
+class AuraMedBrain:
     def __init__(self):
-        self.db = 'aura_memory.db'
+        self.db = 'auramed_memory.db'
         self._init_db()
 
     def _init_db(self):
         conn = sqlite3.connect(self.db)
         cursor = conn.cursor()
-        cursor.execute('''CREATE TABLE IF NOT EXISTS knowledge 
-                          (id INTEGER PRIMARY KEY, area TEXT, topic TEXT, content TEXT, weight INTEGER, niche TEXT)''')
-        cursor.execute('''CREATE TABLE IF NOT EXISTS interactions 
-                          (id INTEGER PRIMARY KEY, ts TEXT, input TEXT, analysis TEXT, severity TEXT)''')
-        conn.commit()
-        conn.close()
-
-    def load_niche(self, niche_name):
-        if niche_name not in NICHE_PACKS: return False
-        conn = sqlite3.connect(self.db)
-        cursor = conn.cursor()
-        # Adiciona o pacote sem apagar o que já existe (Acumulativo)
-        data = [(area, topic, content, weight, niche_name) for area, topic, content, weight in NICHE_PACKS[niche_name]]
-        cursor.executemany("INSERT INTO knowledge (area, topic, content, weight, niche) VALUES (?,?,?,?,?)", data)
-        conn.commit()
-        conn.close()
-        return True
-
-    def analyze(self, text):
-        conn = sqlite3.connect(self.db)
-        cursor = conn.cursor()
-        cursor.execute("SELECT area, topic, content, weight, niche FROM knowledge")
-        rules = cursor.fetchall()
+        cursor.execute('''CREATE TABLE IF NOT EXISTS clinical_knowledge 
+                          (id INTEGER PRIMARY KEY, category TEXT, topic TEXT, content TEXT, priority INTEGER)''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS clinical_logs 
+                          (id INTEGER PRIMARY KEY, ts TEXT, case_input TEXT, analysis TEXT, risk_level TEXT)''')
         
-        found = []
+        cursor.execute("SELECT count(*) FROM clinical_knowledge")
+        if cursor.fetchone()[0] == 0:
+            for cat, items in MEDICAL_KNOWLEDGE.items():
+                for topic, sub, content, priority in items:
+                    cursor.execute("INSERT INTO clinical_knowledge (category, topic, content, priority) VALUES (?,?,?,?)",
+                                   (cat, topic, content, priority))
+        conn.commit()
+        conn.close()
+
+    def clinical_analysis(self, text):
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT category, topic, content, priority FROM clinical_knowledge")
+        knowledge = cursor.fetchall()
+        
+        found_insights = []
         text_low = text.lower()
         
-        for area, topic, content, weight, niche in rules:
-            # Algoritmo de Similaridade Semântica Simples
-            keywords = set(re.findall(r'\w+', content.lower()))
+        for cat, topic, content, priority in knowledge:
+            # Busca por palavras-chave médicas
+            keywords = set(re.findall(r'\w+', content.lower() + " " + topic.lower()))
             input_words = set(re.findall(r'\w+', text_low))
             matches = keywords.intersection(input_words)
             
-            if len(matches) >= 3 or (len(matches) >= 1 and weight == 10):
-                found.append({
-                    "niche": niche,
-                    "area": area,
+            if len(matches) >= 2:
+                found_insights.append({
+                    "category": cat,
                     "topic": topic,
                     "insight": content,
-                    "severity": "Crítica" if weight >= 9 else "Média"
+                    "priority": "Urgente" if priority >= 9 else "Monitorar"
                 })
         conn.close()
-        return found
+        return found_insights
 
-brain = AuraBrain()
+brain = AuraMedBrain()
 
-# --- API ---
-class InputData(BaseModel):
+class CaseData(BaseModel):
     text: str
 
-class NicheData(BaseModel):
-    niche: str
-
-@app.post("/analyze")
-async def analyze_api(data: InputData):
-    results = brain.analyze(data.text)
-    severity = "Alta" if any(r['severity'] == "Crítica" for r in results) else "Baixa"
+@app.post("/analyze_case")
+async def analyze_case(data: CaseData):
+    results = brain.clinical_analysis(data.text)
+    risk = "ALTO" if any(r['priority'] == "Urgente" for r in results) else "Normal"
     
-    conn = sqlite3.connect('aura_memory.db')
+    conn = sqlite3.connect('auramed_memory.db')
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO interactions (ts, input, analysis, severity) VALUES (?,?,?,?)",
-                   (datetime.now().strftime("%H:%M:%S"), data.text, json.dumps(results), severity))
+    cursor.execute("INSERT INTO clinical_logs (ts, case_input, analysis, risk_level) VALUES (?,?,?,?)",
+                   (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), data.text, json.dumps(results), risk))
     conn.commit()
     conn.close()
-    return {"analysis": results, "severity": severity}
+    return {"analysis": results, "risk": risk}
 
-@app.post("/load-niche")
-async def load_niche_api(data: NicheData):
-    success = brain.load_niche(data.niche)
-    if not success: raise HTTPException(status_code=404, detail="Nicho não encontrado")
-    return {"message": f"Conhecimento de {data.niche} injetado com sucesso."}
-
-@app.get("/stats")
-async def get_stats():
-    conn = sqlite3.connect('aura_memory.db')
+@app.get("/hospital_dashboard")
+async def get_dashboard():
+    conn = sqlite3.connect('auramed_memory.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT count(*) FROM knowledge")
-    count = cursor.fetchone()[0]
-    cursor.execute("SELECT niche, count(*) FROM knowledge GROUP BY niche")
-    niches = cursor.fetchall()
-    cursor.execute("SELECT * FROM interactions ORDER BY id DESC LIMIT 10")
-    history = cursor.fetchall()
+    cursor.execute("SELECT * FROM clinical_logs ORDER BY id DESC LIMIT 20")
+    logs = cursor.fetchall()
     conn.close()
     
     return {
-        "total_knowledge": count,
-        "active_niches": {n: c for n, c in niches},
-        "history": [{"ts": r[1], "input": r[2], "analysis": json.loads(r[3]), "severity": r[4]} for r in history]
+        "recent_cases": [{"id": r[0], "ts": r[1], "input": r[2], "analysis": json.loads(r[3]), "risk": r[4]} for r in logs]
     }
 
 if __name__ == "__main__":

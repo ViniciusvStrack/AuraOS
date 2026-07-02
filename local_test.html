@@ -2,135 +2,136 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>AuraOS | Multi-Niche AI Center</title>
+    <title>AuraMed | Intelligence Clinical Layer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { background: #020617; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
-        .niche-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .niche-card:hover { transform: translateY(-5px); border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+        body { background: #f0f4f8; color: #1e293b; font-family: 'Outfit', sans-serif; }
+        .medical-card { background: white; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
+        .alert-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        .sidebar { background: #0f172a; color: white; }
     </style>
 </head>
-<body class="p-8">
-    <div class="max-w-7xl mx-auto">
-        <header class="flex justify-between items-end mb-12 border-b border-white/5 pb-8">
-            <div>
-                <h1 class="text-6xl font-black tracking-tighter italic">AURA<span class="text-blue-600">.OS</span></h1>
-                <p class="text-blue-400 font-bold uppercase tracking-widest text-[10px] mt-2">Plataforma de Inteligência Setorial v4.0</p>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Navigation Sidebar -->
+    <aside class="w-20 lg:w-64 sidebar p-6 flex flex-col items-center lg:items-start">
+        <div class="flex items-center gap-3 mb-12">
+            <div class="bg-blue-600 p-2 rounded-xl text-white"><i data-lucide="stethoscopes" class="w-6 h-6"></i></div>
+            <span class="text-xl font-bold hidden lg:block tracking-tighter">Aura<span class="text-blue-500">Med</span></span>
+        </div>
+        <nav class="space-y-6 w-full">
+            <a href="#" class="flex items-center gap-4 text-blue-400 font-semibold p-3 bg-blue-500/10 rounded-xl">
+                <i data-lucide="layout-grid" class="w-5 h-5"></i> <span class="hidden lg:block">Dashboard</span>
+            </a>
+            <a href="#" class="flex items-center gap-4 text-gray-400 hover:text-white p-3 transition">
+                <i data-lucide="users" class="w-5 h-5"></i> <span class="hidden lg:block">Pacientes</span>
+            </a>
+            <a href="#" class="flex items-center gap-4 text-gray-400 hover:text-white p-3 transition">
+                <i data-lucide="book-open-check" class="w-5 h-5"></i> <span class="hidden lg:block">Protocolos</span>
+            </a>
+        </nav>
+        <div class="mt-auto pt-6 border-t border-white/10 w-full">
+            <p class="text-[10px] text-gray-500 font-bold uppercase hidden lg:block">Conectado ao HIS</p>
+            <div class="flex items-center gap-2 mt-2">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-[10px] text-green-500 font-bold hidden lg:block">Sincronização Ativa</span>
             </div>
-            <div class="flex gap-8">
-                <div class="text-right">
-                    <p class="text-[10px] text-gray-500 font-bold uppercase">Conhecimento Global</p>
-                    <p id="total-k" class="text-3xl font-black">0</p>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        <header class="flex justify-between items-center mb-10">
+            <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Análise de Caso Clínico</h2>
+            <div class="flex gap-4">
+                <div class="bg-white px-4 py-2 rounded-full border border-slate-200 text-sm flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-4 h-4"></i> 2026-07-02
                 </div>
-                <div class="text-right border-l border-white/10 pl-8">
-                    <p class="text-[10px] text-gray-500 font-bold uppercase">Nichos Ativos</p>
-                    <p id="active-n" class="text-3xl font-black text-blue-500">0</p>
+                <div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=doctor" alt="avatar">
                 </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            <!-- Seletor de Nichos -->
-            <div class="lg:col-span-4 space-y-6">
-                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest px-2">Injetar Pack de Inteligência</h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="loadNiche('Healthcare')" class="glass p-4 rounded-2xl niche-card text-left">
-                        <i data-lucide="heart-pulse" class="w-6 h-6 mb-2 text-red-500"></i>
-                        <p class="text-xs font-bold">Saúde</p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Input Clinical -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="medical-card p-8">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="file-text" class="text-blue-600"></i> Entrada de Dados
+                    </h3>
+                    <p class="text-xs text-slate-500 mb-6">Insira a evolução do paciente, prescrição ou queixas para análise imediata de segurança e protocolos.</p>
+                    <textarea id="case-input" class="w-full h-64 bg-slate-50 border-0 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Ex: Paciente com febre alta (39°C), taquicardia e hipotensão. Prescrito Varfarina e AAS..."></textarea>
+                    <button onclick="analyzeCase()" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-500/20 transition transform active:scale-95">
+                        Processar Inteligência
                     </button>
-                    <button onclick="loadNiche('Legal')" class="glass p-4 rounded-2xl niche-card text-left">
-                        <i data-lucide="gavel" class="w-6 h-6 mb-2 text-amber-500"></i>
-                        <p class="text-xs font-bold">Jurídico</p>
-                    </button>
-                    <button onclick="loadNiche('E-commerce')" class="glass p-4 rounded-2xl niche-card text-left">
-                        <i data-lucide="shopping-cart" class="w-6 h-6 mb-2 text-green-500"></i>
-                        <p class="text-xs font-bold">E-commerce</p>
-                    </button>
-                    <button onclick="loadNiche('Fintech')" class="glass p-4 rounded-2xl niche-card text-left">
-                        <i data-lucide="landmark" class="w-6 h-6 mb-2 text-blue-500"></i>
-                        <p class="text-xs font-bold">Fintech</p>
-                    </button>
-                    <button onclick="loadNiche('Manufacturing')" class="glass p-4 rounded-2xl niche-card text-left">
-                        <i data-lucide="factory" class="w-6 h-6 mb-2 text-purple-500"></i>
-                        <p class="text-xs font-bold">Indústria</p>
-                    </button>
-                </div>
-
-                <div class="glass p-8 rounded-3xl mt-12">
-                    <h3 class="font-bold mb-4 flex items-center gap-2 italic">Analisar Contexto</h3>
-                    <textarea id="main-input" class="w-full h-48 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm focus:border-blue-500 outline-none transition-all" placeholder="Simule uma conversa ou documento do nicho escolhido..."></textarea>
-                    <button onclick="analyze()" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold transition shadow-xl shadow-blue-600/20">Processar Inteligência</button>
                 </div>
             </div>
 
-            <!-- Dashboard de Resultados -->
-            <div class="lg:col-span-8 space-y-6">
-                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest px-2">Feed Global de Eventos</h2>
-                <div id="event-feed" class="space-y-4">
-                    <!-- Dinâmico -->
+            <!-- Feed de Alertas -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest">Feed de Segurança do Paciente</h3>
+                    <span class="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-[10px] font-bold">ALERTA EM TEMPO REAL</span>
+                </div>
+                <div id="case-feed" class="space-y-4">
+                    <!-- Logs Clínicos dinâmicos -->
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <script>
         const API = "http://localhost:8000";
 
-        async function loadNiche(niche) {
-            await fetch(`${API}/load-niche`, {
+        async function analyzeCase() {
+            const text = document.getElementById('case-input').value;
+            if(!text) return;
+            const res = await fetch(`${API}/analyze_case`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({niche})
+                body: JSON.stringify({text})
             });
-            alert(`${niche} Pack de Inteligência Carregado!`);
-            updateStats();
+            document.getElementById('case-input').value = "";
+            loadDashboard();
         }
 
-        async function updateStats() {
-            const res = await fetch(`${API}/stats`);
+        async function loadDashboard() {
+            const res = await fetch(`${API}/hospital_dashboard`);
             const data = await res.json();
-            document.getElementById('total-k').innerText = data.total_knowledge;
-            document.getElementById('active-n').innerText = Object.keys(data.active_niches).length;
+            const feed = document.getElementById('case-feed');
 
-            const feed = document.getElementById('event-feed');
-            feed.innerHTML = data.history.map(item => `
-                <div class="glass p-6 rounded-3xl border-l-4 ${item.severity === 'Alta' ? 'border-red-500 bg-red-500/5' : 'border-blue-500'}">
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="text-[10px] font-black text-gray-500 font-mono italic">"${item.input.substring(0, 60)}..."</span>
-                        <span class="text-[10px] font-bold text-gray-600">${item.ts}</span>
+            feed.innerHTML = data.recent_cases.map(caseLog => `
+                <div class="medical-card p-6 ${caseLog.risk === 'ALTO' ? 'border-l-8 border-red-500 alert-pulse' : 'border-l-8 border-green-500'}">
+                    <div class="flex justify-between mb-4">
+                        <span class="text-[10px] font-bold text-slate-400">${caseLog.ts}</span>
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${caseLog.risk === 'ALTO' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
+                            Risco: ${caseLog.risk}
+                        </span>
                     </div>
-                    ${item.analysis.map(an => `
-                        <div class="mb-4 last:mb-0">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">${an.niche.toUpperCase()}</span>
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">${an.area} > ${an.topic}</span>
+                    <p class="text-sm font-semibold text-slate-800 mb-4 leading-relaxed">"${caseLog.input}"</p>
+                    <div class="space-y-3">
+                        ${caseLog.analysis.map(an => `
+                            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="text-[8px] bg-slate-200 px-2 py-0.5 rounded-full font-bold uppercase">${an.category}</span>
+                                    <span class="text-xs font-black text-slate-700 uppercase">${an.topic}</span>
+                                </div>
+                                <p class="text-xs text-slate-600 leading-snug">${an.insight}</p>
                             </div>
-                            <p class="text-sm font-bold text-white mb-1 leading-tight">${an.insight}</p>
-                        </div>
-                    `).join('')}
-                    ${item.analysis.length === 0 ? '<p class="text-xs text-green-500 font-bold italic">✓ CONFORMIDADE TOTAL: Nenhuma violação detectada nos nichos ativos.</p>' : ''}
+                        `).join('')}
+                        ${caseLog.analysis.length === 0 ? '<p class="text-xs text-green-600 font-bold italic">✓ Nenhuma violação de protocolo ou interação medicamentosa detectada.</p>' : ''}
+                    </div>
                 </div>
             `).join('');
             lucide.createIcons();
         }
 
-        async function analyze() {
-            const text = document.getElementById('main-input').value;
-            if(!text) return;
-            await fetch(`${API}/analyze`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({text})
-            });
-            document.getElementById('main-input').value = "";
-            updateStats();
-        }
-
-        setInterval(updateStats, 5000);
-        updateStats();
+        setInterval(loadDashboard, 5000);
+        loadDashboard();
     </script>
 </body>
 </html>
