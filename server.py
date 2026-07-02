@@ -10,123 +10,98 @@ from datetime import datetime
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-# --- BANCO DE DADOS UNIFICADO ---
-def init_db():
-    conn = sqlite3.connect('auramed_pro.db')
-    cursor = conn.cursor()
-    
-    # Conhecimento Médico Global (Sem divisões chatas)
-    cursor.execute('''CREATE TABLE IF NOT EXISTS medical_brain (
-                        id INTEGER PRIMARY KEY, 
-                        trigger_keywords TEXT, 
-                        diagnosis TEXT, 
-                        exams TEXT,
-                        conduct TEXT,
-                        urgency TEXT)''')
-    
-    cursor.execute('''CREATE TABLE IF NOT EXISTS duty_schedule (
-                        id INTEGER PRIMARY KEY, doctor TEXT, date TEXT, shift TEXT, location TEXT)''')
+# --- CÉREBRO CLÍNICO AVANÇADO ---
+class MedicalIntelligence:
+    def __init__(self):
+        self.db = 'auramed_pro.db'
+        self._setup_knowledge()
 
-    cursor.execute('''CREATE TABLE IF NOT EXISTS chat_history (
-                        id INTEGER PRIMARY KEY, role TEXT, message TEXT, timestamp TEXT)''')
+    def _setup_knowledge(self):
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+        cursor.execute('''CREATE TABLE IF NOT EXISTS medical_brain (
+                            id INTEGER PRIMARY KEY, 
+                            topic TEXT,
+                            synonyms TEXT, 
+                            diagnosis TEXT, 
+                            exams TEXT,
+                            conduct TEXT,
+                            urgency TEXT)''')
+        
+        # Base de Conhecimento Expandida e Inteligente
+        cursor.execute("SELECT count(*) FROM medical_brain")
+        if cursor.fetchone()[0] == 0:
+            knowledge = [
+                ("Respiratório", "tosse, catarro, secreção, febre, dispneia, falta de ar, cansaço", 
+                 "Pneumonia / Bronquite Aguda", "Raio-X de Tórax, Hemograma Completo, Oximetria", 
+                 "Iniciar antibioticoterapia se critérios de Centor/CURB-65 positivos. Hidratação vigorosa.", "Alta"),
+                
+                ("Cardiovascular", "dor peito, precordialgia, sudorese, suor, queimação, aperto, braço esquerdo, mandíbula", 
+                 "Síndrome Coronariana Aguda (IAM)", "Eletrocardiograma (ECG) 12 derivações, Troponina I, CK-MB", 
+                 "Protocolo MONA (Morfina, Oxigênio, Nitrato, AAS). Transferência para sala de emergência.", "Crítica"),
+                
+                ("Neurológico", "dor cabeça, cefaleia, fotofobia, enxaqueca, vômito, náusea, tontura", 
+                 "Cefaleia Primária / Enxaqueca", "Exame físico neurológico, Tomografia se houver sinais de alerta (SNOOP)", 
+                 "Analgesia venosa, repouso em local escuro, evitar gatilhos alimentares.", "Média"),
+                
+                ("Gastrointestinal", "dor barriga, dor abdominal, vômito, diarreia, enjoo, estômago", 
+                 "Gastroenterite Aguda / Abdome Agudo a esclarecer", "Ultrassom Abdominal, Amilase/Lipase, Hemograma", 
+                 "Reposição volêmica, antieméticos, avaliar sinais de peritonite (Blumberg).", "Média")
+            ]
+            cursor.executemany("INSERT INTO medical_brain (topic, synonyms, diagnosis, exams, conduct, urgency) VALUES (?,?,?,?,?,?)", knowledge)
+        conn.commit()
+        conn.close()
 
-    # Populando o Cérebro com conhecimento abrangente
-    cursor.execute("SELECT count(*) FROM medical_brain")
-    if cursor.fetchone()[0] == 0:
-        base_data = [
-            ("tosse, catarro, febre, falta de ar", "Pneumonia / Infecção Respiratória", "Raio-X de Tórax, Hemograma, Saturação", "Prescrever Antibioticoterapia, Hidratação, Repouso.", "Alta"),
-            ("dor no peito, suor, queimação, braço", "Síndrome Coronariana Aguda (IAM)", "ECG, Troponina, Marcadores Cardíacos", "Protocolo de Dor Torácica: AAS, Nitratos (se não contraindicado), Oxigênio.", "Crítica"),
-            ("dor de cabeça, luz, náusea, vômito", "Enxaqueca / Cefaleia Vascular", "Avaliação Clínica, Tomografia (se sinais de alarme)", "Analgésicos EV, Antieméticos, Ambiente Escuro.", "Média"),
-            ("manchas vermelhas, coceira, criança", "Exantema a esclarecer (Virose)", "Avaliação Clínica, Sorologias se persistir", "Sintomáticos, monitorar sinais de alarme (febre persistente).", "Média"),
-            ("dor pélvica, atraso, sangramento", "Urgência Ginecológica / Gravidez Ectópica", "Beta-HCG, Ultrassom Transvaginal", "Avaliação imediata por especialista, jejum se cirúrgico.", "Crítica"),
-            ("tristeza, insônia, sem energia", "Transtorno Depressivo / Burnout", "Escalas de Depressão, Exames para excluir Tireoide", "Encaminhamento Psiquiatria/Psicologia, Higiene do Sono.", "Média")
-        ]
-        cursor.executemany("INSERT INTO medical_brain (trigger_keywords, diagnosis, exams, conduct, urgency) VALUES (?,?,?,?,?,?)", base_data)
-    
-    conn.commit()
-    conn.close()
+    def process_message(self, user_msg):
+        text = user_msg.lower()
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT topic, synonyms, diagnosis, exams, conduct, urgency FROM medical_brain")
+        rules = cursor.fetchall()
+        
+        matches = []
+        for topic, synonyms, diag, exams, conduct, urgency in rules:
+            syn_list = synonyms.split(", ")
+            # Sistema de Pontuação: Quanto mais termos relacionados, mais certeza a IA tem
+            score = sum(1 for syn in syn_list if syn in text)
+            
+            if score > 0:
+                matches.append({
+                    "score": score,
+                    "title": diag,
+                    "exams": exams,
+                    "conduct": conduct,
+                    "urgency": urgency
+                })
+        
+        conn.close()
+        # Ordena pelos resultados mais prováveis (maior score)
+        return sorted(matches, key=lambda x: x['score'], reverse=True)
 
-init_db()
+brain = MedicalIntelligence()
 
-# --- MODELOS ---
-class ChatMessage(BaseModel):
+class ChatRequest(BaseModel):
     message: str
 
-class DutyData(BaseModel):
-    doctor: str
-    date: str
-    shift: str
-    location: str
-
-# --- LÓGICA DO CHAT INTELIGENTE ---
 @app.post("/chat")
-async def chat_with_ai(data: ChatMessage):
-    msg = data.message.lower()
-    conn = sqlite3.connect('auramed_pro.db')
-    cursor = conn.cursor()
+async def chat_endpoint(req: ChatRequest):
+    user_text = req.message
     
-    # Salva mensagem do usuário
-    ts = datetime.now().strftime("%H:%M:%S")
-    cursor.execute("INSERT INTO chat_history (role, message, timestamp) VALUES (?,?,?)", ("user", data.message, ts))
+    # Processamento de IA
+    results = brain.process_message(user_text)
     
-    # Busca no Cérebro
-    cursor.execute("SELECT diagnosis, exams, conduct, urgency FROM medical_brain")
-    all_knowledge = cursor.fetchall()
-    
-    response_cards = []
-    for diag, exams, conduct, urgency in all_knowledge:
-        # Busca palavras chave no cérebro
-        cursor.execute("SELECT trigger_keywords FROM medical_brain WHERE diagnosis = ?", (diag,))
-        keywords = cursor.fetchone()[0].split(", ")
-        
-        matches = [k for k in keywords if k in msg]
-        if matches:
-            response_cards.append({
-                "type": "diagnostic_card",
-                "title": diag,
-                "exams": exams,
-                "conduct": conduct,
-                "urgency": urgency
-            })
-
-    # Resposta padrão se não achar nada específico
-    if not response_cards:
-        ai_reply = "Entendi. Para este caso, recomendo uma avaliação física detalhada. Posso ajudar com protocolos de exames se você detalhar os sintomas."
+    # Lógica de Resposta Humanizada
+    if not results:
+        # Resposta genérica mas inteligente se não houver match clínico
+        if len(user_text.split()) < 3:
+            reply = "Poderia me dar mais detalhes sobre o quadro clínico do paciente? Sinais vitais ou sintomas específicos ajudariam."
+        else:
+            reply = "Analisei seu relato. Os sintomas são inespecíficos para um diagnóstico imediato. Recomendo monitorar sinais de alerta e realizar anamnese detalhada."
     else:
-        ai_reply = f"Identifiquei {len(response_cards)} possibilidade(s) diagnóstica(s) com base no seu relato."
+        top_result = results[0]
+        reply = f"Com base nos sinais relatados, identifiquei uma forte suspeita de {top_result['title']}. Veja as condutas sugeridas nos cards abaixo."
 
-    cursor.execute("INSERT INTO chat_history (role, message, timestamp) VALUES (?,?,?)", ("ai", ai_reply, ts))
-    conn.commit()
-    conn.close()
-    
-    return {"message": ai_reply, "cards": response_cards}
-
-@app.get("/history")
-async def get_history():
-    conn = sqlite3.connect('auramed_pro.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM chat_history ORDER BY id DESC LIMIT 20")
-    data = cursor.fetchall()
-    conn.close()
-    return [{"role": r[1], "message": r[2], "time": r[3]} for r in data][::-1]
-
-@app.post("/schedule")
-async def add_schedule(data: DutyData):
-    conn = sqlite3.connect('auramed_pro.db')
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO duty_schedule (doctor, date, shift, location) VALUES (?,?,?,?)", (data.doctor, data.date, data.shift, data.location))
-    conn.commit()
-    conn.close()
-    return {"status": "ok"}
-
-@app.get("/get_schedule")
-async def get_schedule():
-    conn = sqlite3.connect('auramed_pro.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM duty_schedule ORDER BY date ASC")
-    d = cursor.fetchall()
-    conn.close()
-    return [{"doctor": r[1], "date": r[2], "shift": r[3], "location": r[4]} for r in d]
+    return {"message": reply, "cards": results}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
