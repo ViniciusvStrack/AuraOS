@@ -1,5 +1,4 @@
 import sqlite3
-import re
 import uvicorn
 import json
 from fastapi import FastAPI, HTTPException
@@ -10,105 +9,119 @@ from datetime import datetime
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-# --- BASE DE CONHECIMENTO MÉDICO (AuraMed Core) ---
-MEDICAL_KNOWLEDGE = {
-    "Interações": [
-        ("Farmacologia", "Varfarina + AAS", "Risco altíssimo de hemorragia. Evitar associação ou monitorar INR rigidamente.", 10),
-        ("Farmacologia", "Sildenafila + Nitratos", "Risco de hipotensão severa e óbito. Associação contraindicada.", 10),
-        ("Farmacologia", "Digoxina + Furosemida", "Risco de toxicidade digitálica por hipocalemia.", 8)
-    ],
-    "Protocolos": [
-        ("Emergência", "Protocolo de Sepse", "Febre + Hipotensão + Taquicardia: Iniciar protocolo de sepse (Lactato, Hemoculturas, Antibiótico na 1ª hora).", 10),
-        ("Cardiologia", "IAM com Supra", "Tempo porta-balão deve ser inferior a 90 minutos. Iniciar AAS + Clopidogrel imediatamente.", 10),
-        ("Neurologia", "AVC Isquêmico", "Janela de trombólise é de até 4.5 horas do início dos sintomas. Realizar TC de crânio urgente.", 10)
-    ],
-    "Diagnóstico": [
-        ("Sintomas", "Dengue", "Febre alta, dor retro-orbital, mialgia. Alerta para sinais de alarme: dor abdominal intensa, vômitos persistentes.", 8),
-        ("Sintomas", "Diabetes Mellitus", "Poliúria, polidipsia, perda de peso. Glicemia de jejum > 126 mg/dL em duas ocasiões.", 7),
-        ("Sintomas", "Apendicite", "Dor que inicia na região periumbilical e migra para fossa ilíaca direita. Sinal de Blumberg positivo.", 9)
-    ],
-    "Cuidados de Enfermagem": [
-        ("Procedimento", "Sonda Vesical", "Manter bolsa coletora abaixo do nível da bexiga para evitar infecção urinária retrógrada.", 8),
-        ("Procedimento", "Acesso Central", "Monitorar sinais de flogose e curativo estéril. Troca conforme protocolo da CCIH.", 7)
-    ]
-}
-
-class AuraMedBrain:
-    def __init__(self):
-        self.db = 'auramed_memory.db'
-        self._init_db()
-
-    def _init_db(self):
-        conn = sqlite3.connect(self.db)
-        cursor = conn.cursor()
-        cursor.execute('''CREATE TABLE IF NOT EXISTS clinical_knowledge 
-                          (id INTEGER PRIMARY KEY, category TEXT, topic TEXT, content TEXT, priority INTEGER)''')
-        cursor.execute('''CREATE TABLE IF NOT EXISTS clinical_logs 
-                          (id INTEGER PRIMARY KEY, ts TEXT, case_input TEXT, analysis TEXT, risk_level TEXT)''')
-        
-        cursor.execute("SELECT count(*) FROM clinical_knowledge")
-        if cursor.fetchone()[0] == 0:
-            for cat, items in MEDICAL_KNOWLEDGE.items():
-                for topic, sub, content, priority in items:
-                    cursor.execute("INSERT INTO clinical_knowledge (category, topic, content, priority) VALUES (?,?,?,?)",
-                                   (cat, topic, content, priority))
-        conn.commit()
-        conn.close()
-
-    def clinical_analysis(self, text):
-        conn = sqlite3.connect(self.db)
-        cursor = conn.cursor()
-        cursor.execute("SELECT category, topic, content, priority FROM clinical_knowledge")
-        knowledge = cursor.fetchall()
-        
-        found_insights = []
-        text_low = text.lower()
-        
-        for cat, topic, content, priority in knowledge:
-            # Busca por palavras-chave médicas
-            keywords = set(re.findall(r'\w+', content.lower() + " " + topic.lower()))
-            input_words = set(re.findall(r'\w+', text_low))
-            matches = keywords.intersection(input_words)
-            
-            if len(matches) >= 2:
-                found_insights.append({
-                    "category": cat,
-                    "topic": topic,
-                    "insight": content,
-                    "priority": "Urgente" if priority >= 9 else "Monitorar"
-                })
-        conn.close()
-        return found_insights
-
-brain = AuraMedBrain()
-
-class CaseData(BaseModel):
-    text: str
-
-@app.post("/analyze_case")
-async def analyze_case(data: CaseData):
-    results = brain.clinical_analysis(data.text)
-    risk = "ALTO" if any(r['priority'] == "Urgente" for r in results) else "Normal"
-    
-    conn = sqlite3.connect('auramed_memory.db')
+# --- BANCO DE DADOS GIGANTE (AuraMed Enterprise) ---
+def init_db():
+    conn = sqlite3.connect('auramed_v3.db')
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO clinical_logs (ts, case_input, analysis, risk_level) VALUES (?,?,?,?)",
-                   (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), data.text, json.dumps(results), risk))
+    
+    # Tabela de Conhecimento por Especialidade
+    cursor.execute('''CREATE TABLE IF NOT EXISTS specialty_knowledge (
+                        id INTEGER PRIMARY KEY, 
+                        specialty TEXT, 
+                        symptoms TEXT, 
+                        diagnosis TEXT, 
+                        exams TEXT,
+                        priority TEXT)''')
+    
+    # Tabela de Agenda de Plantão
+    cursor.execute('''CREATE TABLE IF NOT EXISTS duty_schedule (
+                        id INTEGER PRIMARY KEY, 
+                        doctor_name TEXT, 
+                        date TEXT, 
+                        shift TEXT, 
+                        location TEXT)''')
+    
+    # Tabela de Logs de Consultas (Para aprendizado)
+    cursor.execute('''CREATE TABLE IF NOT EXISTS clinical_cases (
+                        id INTEGER PRIMARY KEY, 
+                        ts TEXT, 
+                        specialty TEXT, 
+                        input_text TEXT, 
+                        output_analysis TEXT)''')
+
+    # Populando Conhecimento Inicial por Áreas
+    cursor.execute("SELECT count(*) FROM specialty_knowledge")
+    if cursor.fetchone()[0] == 0:
+        knowledge_base = [
+            ("Clínica Médica", "tosse, catarro, febre", "Pneumonia, Bronquite, Influenza", "Raio-X de Tórax, Hemograma, Proteína C Reativa", "Média"),
+            ("Pediatria", "febre, manchas vermelhas, coceira", "Varicela, Sarampo, Escarlatina", "Sorologia, Avaliação Clínica", "Alta"),
+            ("Cardiologia", "dor no peito, falta de ar, suor frio", "IAM, Angina Instável, Dissecção de Aorta", "ECG, Troponina, Ecocardiograma", "Crítica"),
+            ("Ginecologia", "dor pélvica, atraso menstrual", "Gravidez Ectópica, Cisto Ovariano", "Beta-HCG, Ultrassom Transvaginal", "Alta"),
+            ("Ortopedia", "dor lombar, irradiação para perna", "Hérnia de Disco, Ciatalgia", "Ressonância de Coluna, Teste de Lasègue", "Média"),
+            ("Psiquiatria", "tristeza profunda, falta de energia, insônia", "Transtorno Depressivo Maior, Burnout", "Escala de Hamilton, Avaliação Clínica", "Média"),
+            ("Dermatologia", "lesão descamativa, bordas irregulares", "Psoríase, Carcinoma Basocelular", "Biópsia de Pele, Dermatoscopia", "Baixa")
+        ]
+        cursor.executemany("INSERT INTO specialty_knowledge (specialty, symptoms, diagnosis, exams, priority) VALUES (?,?,?,?,?)", knowledge_base)
+    
     conn.commit()
     conn.close()
-    return {"analysis": results, "risk": risk}
 
-@app.get("/hospital_dashboard")
-async def get_dashboard():
-    conn = sqlite3.connect('auramed_memory.db')
+init_db()
+
+# --- MODELOS ---
+class CaseInput(BaseModel):
+    specialty: str
+    text: str
+
+class DutyInput(BaseModel):
+    doctor: str
+    date: str
+    shift: str
+    location: str
+
+# --- LÓGICA DE INTELIGÊNCIA ---
+@app.post("/clinical_ai")
+async def clinical_ai(data: CaseInput):
+    conn = sqlite3.connect('auramed_v3.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM clinical_logs ORDER BY id DESC LIMIT 20")
-    logs = cursor.fetchall()
-    conn.close()
     
-    return {
-        "recent_cases": [{"id": r[0], "ts": r[1], "input": r[2], "analysis": json.loads(r[3]), "risk": r[4]} for r in logs]
-    }
+    # Busca conhecimento na especialidade ou global
+    cursor.execute("SELECT diagnosis, exams, priority FROM specialty_knowledge WHERE specialty = ? OR specialty = 'Clínica Médica'", (data.specialty,))
+    knowledge = cursor.fetchall()
+    
+    results = []
+    text_low = data.text.lower()
+    
+    for diag, exams, prio in knowledge:
+        # Verifica se algum sintoma da base está no texto do médico
+        # (Em produção usaríamos NLP avançado, aqui usamos match de conceitos)
+        cursor.execute("SELECT symptoms FROM specialty_knowledge WHERE diagnosis = ?", (diag,))
+        symptoms = cursor.fetchone()[0].split(", ")
+        
+        match_count = sum(1 for s in symptoms if s in text_low)
+        if match_count > 0:
+            results.append({
+                "possible_diagnosis": diag,
+                "suggested_exams": exams,
+                "priority": prio
+            })
+
+    # Salva o caso para a IA "aprender" no futuro
+    cursor.execute("INSERT INTO clinical_cases (ts, specialty, input_text, output_analysis) VALUES (?,?,?,?)",
+                   (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), data.specialty, data.text, json.dumps(results)))
+    
+    conn.commit()
+    conn.close()
+    return {"results": results}
+
+@app.post("/add_duty")
+async def add_duty(data: DutyInput):
+    conn = sqlite3.connect('auramed_v3.db')
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO duty_schedule (doctor_name, date, shift, location) VALUES (?,?,?,?)",
+                   (data.doctor, data.date, data.shift, data.location))
+    conn.commit()
+    conn.close()
+    return {"status": "Plantão agendado"}
+
+@app.get("/get_duties")
+async def get_duties():
+    conn = sqlite3.connect('auramed_v3.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM duty_schedule ORDER BY date ASC")
+    duties = cursor.fetchall()
+    conn.close()
+    return [{"id": d[0], "doctor": d[1], "date": d[2], "shift": d[3], "location": d[4]} for d in duties]
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

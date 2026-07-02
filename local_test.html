@@ -2,136 +2,195 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>AuraMed | Intelligence Clinical Layer</title>
+    <title>AuraMed Enterprise | Portal Clínico</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
-        body { background: #f0f4f8; color: #1e293b; font-family: 'Outfit', sans-serif; }
-        .medical-card { background: white; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
-        .alert-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-        .sidebar { background: #0f172a; color: white; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+        body { background: #f8fafc; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .sidebar { background: #1e293b; color: white; }
+        .glass-card { background: white; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .btn-medical { background: #2563eb; color: white; transition: all 0.2s; }
+        .btn-medical:hover { background: #1d4ed8; transform: translateY(-1px); }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <!-- Navigation Sidebar -->
-    <aside class="w-20 lg:w-64 sidebar p-6 flex flex-col items-center lg:items-start">
-        <div class="flex items-center gap-3 mb-12">
-            <div class="bg-blue-600 p-2 rounded-xl text-white"><i data-lucide="stethoscopes" class="w-6 h-6"></i></div>
-            <span class="text-xl font-bold hidden lg:block tracking-tighter">Aura<span class="text-blue-500">Med</span></span>
+    <!-- Sidebar -->
+    <aside class="w-64 sidebar p-6 flex flex-col h-full">
+        <div class="flex items-center gap-3 mb-10">
+            <div class="bg-blue-500 p-2 rounded-lg text-white"><i data-lucide="activity" class="w-5 h-5"></i></div>
+            <span class="text-xl font-bold tracking-tighter italic">AuraMed <span class="text-blue-400">Pro</span></span>
         </div>
-        <nav class="space-y-6 w-full">
-            <a href="#" class="flex items-center gap-4 text-blue-400 font-semibold p-3 bg-blue-500/10 rounded-xl">
-                <i data-lucide="layout-grid" class="w-5 h-5"></i> <span class="hidden lg:block">Dashboard</span>
-            </a>
-            <a href="#" class="flex items-center gap-4 text-gray-400 hover:text-white p-3 transition">
-                <i data-lucide="users" class="w-5 h-5"></i> <span class="hidden lg:block">Pacientes</span>
-            </a>
-            <a href="#" class="flex items-center gap-4 text-gray-400 hover:text-white p-3 transition">
-                <i data-lucide="book-open-check" class="w-5 h-5"></i> <span class="hidden lg:block">Protocolos</span>
-            </a>
+        
+        <nav class="space-y-2 flex-1">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Módulos</p>
+            <button onclick="switchTab('diag')" class="w-full flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition text-sm">
+                <i data-lucide="brain-circuit" class="w-4 h-4"></i> Diagnóstico IA
+            </button>
+            <button onclick="switchTab('agenda')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition text-sm">
+                <i data-lucide="calendar" class="w-4 h-4"></i> Minha Agenda
+            </button>
         </nav>
-        <div class="mt-auto pt-6 border-t border-white/10 w-full">
-            <p class="text-[10px] text-gray-500 font-bold uppercase hidden lg:block">Conectado ao HIS</p>
-            <div class="flex items-center gap-2 mt-2">
-                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span class="text-[10px] text-green-500 font-bold hidden lg:block">Sincronização Ativa</span>
-            </div>
+        
+        <div class="mt-auto p-4 bg-blue-600/10 rounded-2xl">
+            <p class="text-[10px] font-bold text-blue-400 uppercase">Especialidade Ativa</p>
+            <select id="specialty-selector" class="bg-transparent text-xs font-bold w-full outline-none mt-1">
+                <option value="Clínica Médica">Clínica Médica</option>
+                <option value="Pediatria">Pediatria</option>
+                <option value="Cardiologia">Cardiologia</option>
+                <option value="Ginecologia">Ginecologia</option>
+                <option value="Ortopedia">Ortopedia</option>
+                <option value="Psiquiatria">Psiquiatria</option>
+                <option value="Dermatologia">Dermatologia</option>
+            </select>
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="flex-1 p-8 overflow-y-auto">
-        <header class="flex justify-between items-center mb-10">
-            <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Análise de Caso Clínico</h2>
-            <div class="flex gap-4">
-                <div class="bg-white px-4 py-2 rounded-full border border-slate-200 text-sm flex items-center gap-2">
-                    <i data-lucide="calendar" class="w-4 h-4"></i> 2026-07-02
+    <!-- Content -->
+    <main class="flex-1 p-10 overflow-y-auto">
+        <!-- Diagnóstico View -->
+        <div id="view-diag" class="space-y-8 animate-in fade-in duration-500">
+            <header>
+                <h1 class="text-3xl font-extrabold tracking-tight">Assistente de Diagnóstico</h1>
+                <p class="text-gray-500">Insira os sintomas para receber sugestões baseadas em evidências.</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass-card p-8">
+                    <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="user-search" class="text-blue-500"></i> Anamnese</h3>
+                    <textarea id="symptoms-input" class="w-full h-48 bg-gray-50 rounded-2xl p-4 text-sm border-0 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ex: Paciente com tosse persistente há 3 dias, febre e catarro amarelado..."></textarea>
+                    <button onclick="runDiag()" class="w-full mt-6 btn-medical py-4 rounded-2xl font-bold shadow-lg shadow-blue-500/20">Analisar Caso</button>
                 </div>
-                <div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=doctor" alt="avatar">
+
+                <div class="space-y-4">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Possíveis Condutas e Exames</h3>
+                    <div id="diag-results" class="space-y-4">
+                        <div class="text-center py-20 text-gray-400 italic text-sm">Aguardando entrada de dados do paciente...</div>
+                    </div>
                 </div>
             </div>
-        </header>
+        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Input Clinical -->
-            <div class="lg:col-span-1 space-y-6">
-                <div class="medical-card p-8">
-                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                        <i data-lucide="file-text" class="text-blue-600"></i> Entrada de Dados
-                    </h3>
-                    <p class="text-xs text-slate-500 mb-6">Insira a evolução do paciente, prescrição ou queixas para análise imediata de segurança e protocolos.</p>
-                    <textarea id="case-input" class="w-full h-64 bg-slate-50 border-0 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Ex: Paciente com febre alta (39°C), taquicardia e hipotensão. Prescrito Varfarina e AAS..."></textarea>
-                    <button onclick="analyzeCase()" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-500/20 transition transform active:scale-95">
-                        Processar Inteligência
-                    </button>
-                </div>
-            </div>
-
-            <!-- Feed de Alertas -->
-            <div class="lg:col-span-2 space-y-6">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest">Feed de Segurança do Paciente</h3>
-                    <span class="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-[10px] font-bold">ALERTA EM TEMPO REAL</span>
-                </div>
-                <div id="case-feed" class="space-y-4">
-                    <!-- Logs Clínicos dinâmicos -->
-                </div>
+        <!-- Agenda View (Hidden by default) -->
+        <div id="view-agenda" class="hidden space-y-8">
+            <header class="flex justify-between items-center">
+                <h1 class="text-3xl font-extrabold tracking-tight">Escala de Plantões</h1>
+                <button onclick="openDutyModal()" class="bg-blue-600 text-white px-6 py-2 rounded-xl text-sm font-bold">+ Novo Plantão</button>
+            </header>
+            
+            <div class="glass-card overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">Data</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">Profissional</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">Turno</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">Local</th>
+                        </tr>
+                    </thead>
+                    <tbody id="duty-table-body">
+                        <!-- Dinâmico -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>
 
+    <!-- Modal Adicionar Plantão (Simples) -->
+    <div id="duty-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-3xl w-96">
+            <h3 class="font-bold mb-6 text-xl">Novo Agendamento</h3>
+            <div class="space-y-4">
+                <input id="duty-name" type="text" placeholder="Seu Nome" class="w-full p-3 bg-gray-100 rounded-xl outline-none">
+                <input id="duty-date" type="date" class="w-full p-3 bg-gray-100 rounded-xl outline-none">
+                <select id="duty-shift" class="w-full p-3 bg-gray-100 rounded-xl outline-none">
+                    <option>Diurno (07h - 19h)</option>
+                    <option>Noturno (19h - 07h)</option>
+                    <option>24 Horas</option>
+                </select>
+                <input id="duty-loc" type="text" placeholder="Unidade (ex: Hospital Santa Cruz)" class="w-full p-3 bg-gray-100 rounded-xl outline-none">
+                <div class="flex gap-4 mt-6">
+                    <button onclick="closeDutyModal()" class="flex-1 bg-gray-200 py-3 rounded-xl font-bold">Cancelar</button>
+                    <button onclick="saveDuty()" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API = "http://localhost:8000";
 
-        async function analyzeCase() {
-            const text = document.getElementById('case-input').value;
-            if(!text) return;
-            const res = await fetch(`${API}/analyze_case`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({text})
-            });
-            document.getElementById('case-input').value = "";
-            loadDashboard();
+        function switchTab(tab) {
+            document.getElementById('view-diag').classList.toggle('hidden', tab !== 'diag');
+            document.getElementById('view-agenda').classList.toggle('hidden', tab !== 'agenda');
+            if(tab === 'agenda') loadDuties();
         }
 
-        async function loadDashboard() {
-            const res = await fetch(`${API}/hospital_dashboard`);
-            const data = await res.json();
-            const feed = document.getElementById('case-feed');
+        async function runDiag() {
+            const specialty = document.getElementById('specialty-selector').value;
+            const text = document.getElementById('symptoms-input').value;
+            if(!text) return;
 
-            feed.innerHTML = data.recent_cases.map(caseLog => `
-                <div class="medical-card p-6 ${caseLog.risk === 'ALTO' ? 'border-l-8 border-red-500 alert-pulse' : 'border-l-8 border-green-500'}">
-                    <div class="flex justify-between mb-4">
-                        <span class="text-[10px] font-bold text-slate-400">${caseLog.ts}</span>
-                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${caseLog.risk === 'ALTO' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
-                            Risco: ${caseLog.risk}
-                        </span>
-                    </div>
-                    <p class="text-sm font-semibold text-slate-800 mb-4 leading-relaxed">"${caseLog.input}"</p>
-                    <div class="space-y-3">
-                        ${caseLog.analysis.map(an => `
-                            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-[8px] bg-slate-200 px-2 py-0.5 rounded-full font-bold uppercase">${an.category}</span>
-                                    <span class="text-xs font-black text-slate-700 uppercase">${an.topic}</span>
-                                </div>
-                                <p class="text-xs text-slate-600 leading-snug">${an.insight}</p>
-                            </div>
-                        `).join('')}
-                        ${caseLog.analysis.length === 0 ? '<p class="text-xs text-green-600 font-bold italic">✓ Nenhuma violação de protocolo ou interação medicamentosa detectada.</p>' : ''}
+            const res = await fetch(`${API}/clinical_ai`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({specialty, text})
+            });
+            const data = await res.json();
+            
+            const resultsDiv = document.getElementById('diag-results');
+            if(data.results.length === 0) {
+                resultsDiv.innerHTML = '<div class="p-6 glass-card text-amber-600 text-sm font-bold">Sintomas inconclusivos para esta área. Recomenda-se exame físico detalhado.</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = data.results.map(r => `
+                <div class="glass-card p-6 border-l-4 ${r.priority === 'Crítica' ? 'border-red-500' : 'border-blue-500'}">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Diagnóstico Provável</p>
+                    <h4 class="text-lg font-bold text-slate-800 mb-4">${r.possible_diagnosis}</h4>
+                    <div class="p-4 bg-blue-50 rounded-xl">
+                        <p class="text-[10px] font-bold text-blue-600 uppercase mb-1 italic">Exames Sugeridos</p>
+                        <p class="text-sm font-semibold">${r.suggested_exams}</p>
                     </div>
                 </div>
             `).join('');
             lucide.createIcons();
         }
 
-        setInterval(loadDashboard, 5000);
-        loadDashboard();
+        function openDutyModal() { document.getElementById('duty-modal').classList.remove('hidden'); }
+        function closeDutyModal() { document.getElementById('duty-modal').classList.add('hidden'); }
+
+        async function saveDuty() {
+            const doctor = document.getElementById('duty-name').value;
+            const date = document.getElementById('duty-date').value;
+            const shift = document.getElementById('duty-shift').value;
+            const location = document.getElementById('duty-loc').value;
+
+            await fetch(`${API}/add_duty`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({doctor, date, shift, location})
+            });
+            closeDutyModal();
+            loadDuties();
+        }
+
+        async function loadDuties() {
+            const res = await fetch(`${API}/get_duties`);
+            const data = await res.json();
+            const tbody = document.getElementById('duty-table-body');
+            tbody.innerHTML = data.map(d => `
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="p-4 text-sm font-medium">${d.date}</td>
+                    <td class="p-4 text-sm">${d.doctor}</td>
+                    <td class="p-4 text-sm"><span class="px-2 py-1 bg-blue-100 text-blue-600 rounded text-[10px] font-bold">${d.shift}</span></td>
+                    <td class="p-4 text-sm text-gray-500">${d.location}</td>
+                </tr>
+            `).join('');
+        }
+
+        lucide.createIcons();
     </script>
 </body>
 </html>
