@@ -2,53 +2,82 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>AuraOS | Live Simulation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraOS v2 | Inteligência Corporativa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background: #050505; color: #e2e8f0; font-family: sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .alert-anim { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.1); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #0a0a0c; color: #e4e4e7; }
+        .glass { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
+        .accent-gradient { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); }
+        .conflict-card { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05); }
+        .clean-card { border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05); }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide { animation: slideIn 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="p-8">
-    <div class="max-w-6xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
+<body class="p-6 md:p-12">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
             <div>
-                <h1 class="text-4xl font-extrabold tracking-tighter text-white">AURA<span class="text-blue-500">OS</span></h1>
-                <p class="text-gray-500">Modo de Teste Local Ativo</p>
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span class="text-xs font-bold tracking-widest text-blue-500 uppercase">Sistema Ativo</span>
+                </div>
+                <h1 class="text-5xl font-extrabold tracking-tighter text-white">Aura<span class="text-blue-600 text-6xl">.</span>OS</h1>
             </div>
             <div class="flex gap-4">
-                <div class="glass p-3 rounded-xl text-xs">
-                    <span class="text-green-500">●</span> Servidor: <span id="server-status">Conectando...</span>
+                <div class="glass px-6 py-3 rounded-2xl">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Total Processado</p>
+                    <p id="stat-total" class="text-2xl font-bold">0</p>
+                </div>
+                <div class="glass px-6 py-3 rounded-2xl">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Conflitos Evitados</p>
+                    <p id="stat-conflicts" class="text-2xl font-bold text-red-400">0</p>
                 </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Coluna 1: Input de Teste -->
-            <div class="space-y-6">
-                <div class="glass p-6 rounded-3xl">
-                    <h2 class="text-lg font-bold mb-4">Simular Chat/Email</h2>
-                    <p class="text-xs text-gray-500 mb-4">Envie uma mensagem para ver como a IA detecta erros em tempo real.</p>
-                    <textarea id="chat-input" class="w-full h-32 bg-black/50 border border-white/10 rounded-xl p-4 text-sm focus:border-blue-500 outline-none" placeholder="Ex: Vamos usar AWS nesse projeto com 25% de desconto?"></textarea>
-                    <button onclick="analyzeMessage()" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold transition">Analisar Fluxo</button>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Sidebar: Inputs e Ensinamentos -->
+            <div class="lg:col-span-4 space-y-8">
+                <!-- Analisador -->
+                <div class="glass p-8 rounded-3xl shadow-2xl">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="brain-circuit" class="text-blue-500"></i> Analisar Fluxo
+                    </h3>
+                    <textarea id="main-input" class="w-full h-40 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Cole aqui um chat do Slack, email ou transcrição..."></textarea>
+                    <button onclick="runAnalysis()" class="w-full mt-4 accent-gradient hover:opacity-90 text-white py-4 rounded-2xl font-bold text-lg shadow-lg transition transform active:scale-95">
+                        Executar Inteligência
+                    </button>
                 </div>
 
-                <div class="glass p-6 rounded-3xl">
-                    <h2 class="text-lg font-bold mb-4">Memória Atual</h2>
-                    <div id="knowledge-list" class="space-y-3 text-xs">
-                        <!-- Preenchido via JS -->
+                <!-- Ensinar a IA -->
+                <div class="glass p-8 rounded-3xl">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="graduation-cap" class="text-purple-500"></i> Ensinar Regra
+                    </h3>
+                    <div class="space-y-3">
+                        <input id="teach-cat" type="text" placeholder="Categoria (ex: Jurídico)" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-purple-500">
+                        <textarea id="teach-content" placeholder="O que a IA deve lembrar?" class="w-full h-20 bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-purple-500"></textarea>
+                        <button onclick="teachAI()" class="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">Gravar na Memória</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Coluna 2 e 3: Logs e Alertas -->
-            <div class="lg:col-span-2 space-y-6">
-                <div class="glass p-6 rounded-3xl min-h-[500px]">
-                    <h2 class="text-lg font-bold mb-6">Monitoramento de Conflitos (Real-time)</h2>
-                    <div id="log-container" class="space-y-4">
-                        <p class="text-gray-600 text-center py-20 italic">Aguardando atividade no fluxo de dados...</p>
+            <!-- Feed Central -->
+            <div class="lg:col-span-8 space-y-6">
+                <div class="glass p-8 rounded-3xl min-h-[600px]">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="text-xl font-bold">Monitoramento Cognitivo</h3>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold">LIVE FEED</span>
+                        </div>
+                    </div>
+                    <div id="logs-feed" class="space-y-4">
+                        <!-- Logs dinâmicos -->
                     </div>
                 </div>
             </div>
@@ -56,69 +85,72 @@
     </div>
 
     <script>
-        const API_URL = "http://localhost:8000";
+        const API = "http://localhost:8000";
 
-        async function updateStatus() {
-            try {
-                const res = await fetch(`${API_URL}/knowledge`);
-                if (res.ok) {
-                    document.getElementById('server-status').innerText = "Online";
-                    document.getElementById('server-status').className = "text-green-500";
-                    loadKnowledge();
-                }
-            } catch {
-                document.getElementById('server-status').innerText = "Offline (Execute server.py)";
-                document.getElementById('server-status').className = "text-red-500";
+        async function refreshDashboard() {
+            const res = await fetch(`${API}/dashboard-data`);
+            const data = await res.json();
+            
+            document.getElementById('stat-total').innerText = data.stats.total_processed;
+            document.getElementById('stat-conflicts').innerText = data.stats.conflicts_found;
+
+            const feed = document.getElementById('logs-feed');
+            if (data.history.length === 0) {
+                feed.innerHTML = '<div class="text-center py-20 text-gray-600 italic">Aguardando sinais...</div>';
+                return;
             }
-        }
 
-        async function loadKnowledge() {
-            const res = await fetch(`${API_URL}/knowledge`);
-            const data = await res.json();
-            const list = document.getElementById('knowledge-list');
-            list.innerHTML = data.map(k => `
-                <div class="p-3 bg-white/5 rounded-lg border border-white/5">
-                    <p class="font-bold text-blue-400">${k.topic}</p>
-                    <p class="text-gray-400">${k.content}</p>
-                </div>
-            `).join('');
-        }
-
-        async function analyzeMessage() {
-            const text = document.getElementById('chat-input').value;
-            if (!text) return;
-
-            const res = await fetch(`${API_URL}/analyze`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text, source: "Web Demo" })
-            });
-            
-            document.getElementById('chat-input').value = "";
-            loadLogs();
-        }
-
-        async function loadLogs() {
-            const res = await fetch(`${API_URL}/logs`);
-            const data = await res.json();
-            const container = document.getElementById('log-container');
-            
-            container.innerHTML = data.map(log => `
-                <div class="p-4 rounded-2xl ${log.alert ? 'alert-anim' : 'bg-white/5'} border border-white/5">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-[10px] font-bold tracking-widest uppercase ${log.alert ? 'text-red-400' : 'text-gray-500'}">${log.status}</span>
-                        <span class="text-[10px] text-gray-600">${log.timestamp}</span>
+            feed.innerHTML = data.history.map(log => `
+                <div class="p-6 rounded-2xl animate-slide ${log.conflicts.length > 0 ? 'conflict-card' : 'clean-card'}">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[10px] font-black tracking-widest uppercase ${log.conflicts.length > 0 ? 'text-red-400' : 'text-green-400'}">
+                            ${log.status}
+                        </span>
+                        <span class="text-[10px] text-gray-500 font-mono">${log.timestamp}</span>
                     </div>
-                    <p class="text-sm">"${log.text}"</p>
-                    ${log.alert ? `<p class="mt-3 text-sm text-red-400 font-bold"><i data-lucide="alert-circle" class="inline w-4 h-4 mr-2"></i>${log.alert}</p>` : ''}
+                    <p class="text-sm text-gray-200 mb-4 leading-relaxed">"${log.input}"</p>
+                    ${log.conflicts.map(c => `
+                        <div class="mt-3 p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                            <div class="flex items-center gap-2 text-xs font-bold text-red-400 mb-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> VIOLAÇÃO DE ${c.category.toUpperCase()}
+                            </div>
+                            <p class="text-xs text-red-300/80">${c.content}</p>
+                        </div>
+                    `).join('')}
                 </div>
             `).join('');
             lucide.createIcons();
         }
 
-        setInterval(updateStatus, 3000);
-        updateStatus();
-        loadLogs();
+        async function runAnalysis() {
+            const text = document.getElementById('main-input').value;
+            if (!text) return;
+            await fetch(`${API}/analyze`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text})
+            });
+            document.getElementById('main-input').value = "";
+            refreshDashboard();
+        }
+
+        async function teachAI() {
+            const category = document.getElementById('teach-cat').value;
+            const content = document.getElementById('teach-content').value;
+            if (!category || !content) return;
+            await fetch(`${API}/teach`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({category, content, severity: "Alta"})
+            });
+            alert("Memória Atualizada!");
+            document.getElementById('teach-cat').value = "";
+            document.getElementById('teach-content').value = "";
+            refreshDashboard();
+        }
+
+        setInterval(refreshDashboard, 5000);
+        refreshDashboard();
     </script>
 </body>
 </html>
