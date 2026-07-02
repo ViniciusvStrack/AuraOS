@@ -1,6 +1,7 @@
 import sqlite3
 import uvicorn
 import json
+import re
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,49 +10,38 @@ from datetime import datetime
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-# --- BANCO DE DADOS GIGANTE (AuraMed Enterprise) ---
+# --- BANCO DE DADOS UNIFICADO ---
 def init_db():
-    conn = sqlite3.connect('auramed_v3.db')
+    conn = sqlite3.connect('auramed_pro.db')
     cursor = conn.cursor()
     
-    # Tabela de Conhecimento por Especialidade
-    cursor.execute('''CREATE TABLE IF NOT EXISTS specialty_knowledge (
+    # Conhecimento Médico Global (Sem divisões chatas)
+    cursor.execute('''CREATE TABLE IF NOT EXISTS medical_brain (
                         id INTEGER PRIMARY KEY, 
-                        specialty TEXT, 
-                        symptoms TEXT, 
+                        trigger_keywords TEXT, 
                         diagnosis TEXT, 
                         exams TEXT,
-                        priority TEXT)''')
+                        conduct TEXT,
+                        urgency TEXT)''')
     
-    # Tabela de Agenda de Plantão
     cursor.execute('''CREATE TABLE IF NOT EXISTS duty_schedule (
-                        id INTEGER PRIMARY KEY, 
-                        doctor_name TEXT, 
-                        date TEXT, 
-                        shift TEXT, 
-                        location TEXT)''')
-    
-    # Tabela de Logs de Consultas (Para aprendizado)
-    cursor.execute('''CREATE TABLE IF NOT EXISTS clinical_cases (
-                        id INTEGER PRIMARY KEY, 
-                        ts TEXT, 
-                        specialty TEXT, 
-                        input_text TEXT, 
-                        output_analysis TEXT)''')
+                        id INTEGER PRIMARY KEY, doctor TEXT, date TEXT, shift TEXT, location TEXT)''')
 
-    # Populando Conhecimento Inicial por Áreas
-    cursor.execute("SELECT count(*) FROM specialty_knowledge")
+    cursor.execute('''CREATE TABLE IF NOT EXISTS chat_history (
+                        id INTEGER PRIMARY KEY, role TEXT, message TEXT, timestamp TEXT)''')
+
+    # Populando o Cérebro com conhecimento abrangente
+    cursor.execute("SELECT count(*) FROM medical_brain")
     if cursor.fetchone()[0] == 0:
-        knowledge_base = [
-            ("Clínica Médica", "tosse, catarro, febre", "Pneumonia, Bronquite, Influenza", "Raio-X de Tórax, Hemograma, Proteína C Reativa", "Média"),
-            ("Pediatria", "febre, manchas vermelhas, coceira", "Varicela, Sarampo, Escarlatina", "Sorologia, Avaliação Clínica", "Alta"),
-            ("Cardiologia", "dor no peito, falta de ar, suor frio", "IAM, Angina Instável, Dissecção de Aorta", "ECG, Troponina, Ecocardiograma", "Crítica"),
-            ("Ginecologia", "dor pélvica, atraso menstrual", "Gravidez Ectópica, Cisto Ovariano", "Beta-HCG, Ultrassom Transvaginal", "Alta"),
-            ("Ortopedia", "dor lombar, irradiação para perna", "Hérnia de Disco, Ciatalgia", "Ressonância de Coluna, Teste de Lasègue", "Média"),
-            ("Psiquiatria", "tristeza profunda, falta de energia, insônia", "Transtorno Depressivo Maior, Burnout", "Escala de Hamilton, Avaliação Clínica", "Média"),
-            ("Dermatologia", "lesão descamativa, bordas irregulares", "Psoríase, Carcinoma Basocelular", "Biópsia de Pele, Dermatoscopia", "Baixa")
+        base_data = [
+            ("tosse, catarro, febre, falta de ar", "Pneumonia / Infecção Respiratória", "Raio-X de Tórax, Hemograma, Saturação", "Prescrever Antibioticoterapia, Hidratação, Repouso.", "Alta"),
+            ("dor no peito, suor, queimação, braço", "Síndrome Coronariana Aguda (IAM)", "ECG, Troponina, Marcadores Cardíacos", "Protocolo de Dor Torácica: AAS, Nitratos (se não contraindicado), Oxigênio.", "Crítica"),
+            ("dor de cabeça, luz, náusea, vômito", "Enxaqueca / Cefaleia Vascular", "Avaliação Clínica, Tomografia (se sinais de alarme)", "Analgésicos EV, Antieméticos, Ambiente Escuro.", "Média"),
+            ("manchas vermelhas, coceira, criança", "Exantema a esclarecer (Virose)", "Avaliação Clínica, Sorologias se persistir", "Sintomáticos, monitorar sinais de alarme (febre persistente).", "Média"),
+            ("dor pélvica, atraso, sangramento", "Urgência Ginecológica / Gravidez Ectópica", "Beta-HCG, Ultrassom Transvaginal", "Avaliação imediata por especialista, jejum se cirúrgico.", "Crítica"),
+            ("tristeza, insônia, sem energia", "Transtorno Depressivo / Burnout", "Escalas de Depressão, Exames para excluir Tireoide", "Encaminhamento Psiquiatria/Psicologia, Higiene do Sono.", "Média")
         ]
-        cursor.executemany("INSERT INTO specialty_knowledge (specialty, symptoms, diagnosis, exams, priority) VALUES (?,?,?,?,?)", knowledge_base)
+        cursor.executemany("INSERT INTO medical_brain (trigger_keywords, diagnosis, exams, conduct, urgency) VALUES (?,?,?,?,?,?)", base_data)
     
     conn.commit()
     conn.close()
@@ -59,69 +49,84 @@ def init_db():
 init_db()
 
 # --- MODELOS ---
-class CaseInput(BaseModel):
-    specialty: str
-    text: str
+class ChatMessage(BaseModel):
+    message: str
 
-class DutyInput(BaseModel):
+class DutyData(BaseModel):
     doctor: str
     date: str
     shift: str
     location: str
 
-# --- LÓGICA DE INTELIGÊNCIA ---
-@app.post("/clinical_ai")
-async def clinical_ai(data: CaseInput):
-    conn = sqlite3.connect('auramed_v3.db')
+# --- LÓGICA DO CHAT INTELIGENTE ---
+@app.post("/chat")
+async def chat_with_ai(data: ChatMessage):
+    msg = data.message.lower()
+    conn = sqlite3.connect('auramed_pro.db')
     cursor = conn.cursor()
     
-    # Busca conhecimento na especialidade ou global
-    cursor.execute("SELECT diagnosis, exams, priority FROM specialty_knowledge WHERE specialty = ? OR specialty = 'Clínica Médica'", (data.specialty,))
-    knowledge = cursor.fetchall()
+    # Salva mensagem do usuário
+    ts = datetime.now().strftime("%H:%M:%S")
+    cursor.execute("INSERT INTO chat_history (role, message, timestamp) VALUES (?,?,?)", ("user", data.message, ts))
     
-    results = []
-    text_low = data.text.lower()
+    # Busca no Cérebro
+    cursor.execute("SELECT diagnosis, exams, conduct, urgency FROM medical_brain")
+    all_knowledge = cursor.fetchall()
     
-    for diag, exams, prio in knowledge:
-        # Verifica se algum sintoma da base está no texto do médico
-        # (Em produção usaríamos NLP avançado, aqui usamos match de conceitos)
-        cursor.execute("SELECT symptoms FROM specialty_knowledge WHERE diagnosis = ?", (diag,))
-        symptoms = cursor.fetchone()[0].split(", ")
+    response_cards = []
+    for diag, exams, conduct, urgency in all_knowledge:
+        # Busca palavras chave no cérebro
+        cursor.execute("SELECT trigger_keywords FROM medical_brain WHERE diagnosis = ?", (diag,))
+        keywords = cursor.fetchone()[0].split(", ")
         
-        match_count = sum(1 for s in symptoms if s in text_low)
-        if match_count > 0:
-            results.append({
-                "possible_diagnosis": diag,
-                "suggested_exams": exams,
-                "priority": prio
+        matches = [k for k in keywords if k in msg]
+        if matches:
+            response_cards.append({
+                "type": "diagnostic_card",
+                "title": diag,
+                "exams": exams,
+                "conduct": conduct,
+                "urgency": urgency
             })
 
-    # Salva o caso para a IA "aprender" no futuro
-    cursor.execute("INSERT INTO clinical_cases (ts, specialty, input_text, output_analysis) VALUES (?,?,?,?)",
-                   (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), data.specialty, data.text, json.dumps(results)))
+    # Resposta padrão se não achar nada específico
+    if not response_cards:
+        ai_reply = "Entendi. Para este caso, recomendo uma avaliação física detalhada. Posso ajudar com protocolos de exames se você detalhar os sintomas."
+    else:
+        ai_reply = f"Identifiquei {len(response_cards)} possibilidade(s) diagnóstica(s) com base no seu relato."
+
+    cursor.execute("INSERT INTO chat_history (role, message, timestamp) VALUES (?,?,?)", ("ai", ai_reply, ts))
+    conn.commit()
+    conn.close()
     
-    conn.commit()
-    conn.close()
-    return {"results": results}
+    return {"message": ai_reply, "cards": response_cards}
 
-@app.post("/add_duty")
-async def add_duty(data: DutyInput):
-    conn = sqlite3.connect('auramed_v3.db')
+@app.get("/history")
+async def get_history():
+    conn = sqlite3.connect('auramed_pro.db')
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO duty_schedule (doctor_name, date, shift, location) VALUES (?,?,?,?)",
-                   (data.doctor, data.date, data.shift, data.location))
+    cursor.execute("SELECT * FROM chat_history ORDER BY id DESC LIMIT 20")
+    data = cursor.fetchall()
+    conn.close()
+    return [{"role": r[1], "message": r[2], "time": r[3]} for r in data][::-1]
+
+@app.post("/schedule")
+async def add_schedule(data: DutyData):
+    conn = sqlite3.connect('auramed_pro.db')
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO duty_schedule (doctor, date, shift, location) VALUES (?,?,?,?)", (data.doctor, data.date, data.shift, data.location))
     conn.commit()
     conn.close()
-    return {"status": "Plantão agendado"}
+    return {"status": "ok"}
 
-@app.get("/get_duties")
-async def get_duties():
-    conn = sqlite3.connect('auramed_v3.db')
+@app.get("/get_schedule")
+async def get_schedule():
+    conn = sqlite3.connect('auramed_pro.db')
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM duty_schedule ORDER BY date ASC")
-    duties = cursor.fetchall()
+    d = cursor.fetchall()
     conn.close()
-    return [{"id": d[0], "doctor": d[1], "date": d[2], "shift": d[3], "location": d[4]} for d in duties]
+    return [{"doctor": r[1], "date": r[2], "shift": r[3], "location": r[4]} for r in d]
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

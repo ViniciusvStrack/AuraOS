@@ -2,117 +2,108 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>AuraMed Enterprise | Portal Clínico</title>
+    <title>AuraMed Pro | Inteligência Clínica</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
-        body { background: #f8fafc; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .sidebar { background: #1e293b; color: white; }
-        .glass-card { background: white; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .btn-medical { background: #2563eb; color: white; transition: all 0.2s; }
-        .btn-medical:hover { background: #1d4ed8; transform: translateY(-1px); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; }
+        .sidebar { background: #FFFFFF; border-right: 1px solid #E2E8F0; }
+        .chat-container { height: calc(100vh - 180px); }
+        .user-bubble { background: #EFF6FF; color: #1E40AF; align-self: flex-end; border-radius: 20px 20px 4px 20px; }
+        .ai-bubble { background: #FFFFFF; border: 1px solid #E2E8F0; align-self: flex-start; border-radius: 20px 20px 20px 4px; }
+        .diag-card { background: #FFFFFF; border-left: 4px solid #3B82F6; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .urgent-card { border-left-color: #EF4444; }
+        .input-area { background: #FFFFFF; border: 1px solid #E2E8F0; box-shadow: 0 -4px 10px rgba(0,0,0,0.02); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
+<body class="flex h-screen">
 
-    <!-- Sidebar -->
-    <aside class="w-64 sidebar p-6 flex flex-col h-full">
+    <!-- Sidebar Lateral -->
+    <aside class="w-72 sidebar p-6 flex flex-col">
         <div class="flex items-center gap-3 mb-10">
-            <div class="bg-blue-500 p-2 rounded-lg text-white"><i data-lucide="activity" class="w-5 h-5"></i></div>
-            <span class="text-xl font-bold tracking-tighter italic">AuraMed <span class="text-blue-400">Pro</span></span>
+            <div class="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-200">
+                <i data-lucide="stethoscopes" class="w-6 h-6"></i>
+            </div>
+            <h1 class="text-xl font-bold tracking-tight">AuraMed<span class="text-blue-600 font-black">.</span></h1>
         </div>
-        
-        <nav class="space-y-2 flex-1">
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Módulos</p>
-            <button onclick="switchTab('diag')" class="w-full flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition text-sm">
-                <i data-lucide="brain-circuit" class="w-4 h-4"></i> Diagnóstico IA
+
+        <nav class="space-y-1 flex-1">
+            <button onclick="switchTab('chat')" class="w-full flex items-center gap-3 p-3 rounded-xl bg-blue-50 text-blue-700 font-semibold transition">
+                <i data-lucide="message-circle" class="w-4 h-4"></i> Chat Clínico
             </button>
-            <button onclick="switchTab('agenda')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition text-sm">
+            <button onclick="switchTab('agenda')" class="w-full flex items-center gap-3 p-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
                 <i data-lucide="calendar" class="w-4 h-4"></i> Minha Agenda
             </button>
         </nav>
-        
-        <div class="mt-auto p-4 bg-blue-600/10 rounded-2xl">
-            <p class="text-[10px] font-bold text-blue-400 uppercase">Especialidade Ativa</p>
-            <select id="specialty-selector" class="bg-transparent text-xs font-bold w-full outline-none mt-1">
-                <option value="Clínica Médica">Clínica Médica</option>
-                <option value="Pediatria">Pediatria</option>
-                <option value="Cardiologia">Cardiologia</option>
-                <option value="Ginecologia">Ginecologia</option>
-                <option value="Ortopedia">Ortopedia</option>
-                <option value="Psiquiatria">Psiquiatria</option>
-                <option value="Dermatologia">Dermatologia</option>
-            </select>
+
+        <div class="mt-auto p-4 bg-slate-900 rounded-2xl text-white">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Sistema Premium</span>
+            </div>
+            <p class="text-xs text-slate-300">Dr. Vinicius Strack</p>
         </div>
     </aside>
 
-    <!-- Content -->
-    <main class="flex-1 p-10 overflow-y-auto">
-        <!-- Diagnóstico View -->
-        <div id="view-diag" class="space-y-8 animate-in fade-in duration-500">
-            <header>
-                <h1 class="text-3xl font-extrabold tracking-tight">Assistente de Diagnóstico</h1>
-                <p class="text-gray-500">Insira os sintomas para receber sugestões baseadas em evidências.</p>
-            </header>
+    <!-- Área Principal -->
+    <main class="flex-1 flex flex-col">
+        <!-- Header -->
+        <header class="h-20 border-b bg-white flex justify-between items-center px-8">
+            <h2 id="tab-title" class="font-bold text-lg">Assistente de Diagnóstico</h2>
+            <div class="flex gap-4 items-center">
+                <button class="p-2 text-slate-400 hover:text-slate-600"><i data-lucide="bell" class="w-5 h-5"></i></button>
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs border border-blue-200">VS</div>
+            </div>
+        </header>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="glass-card p-8">
-                    <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="user-search" class="text-blue-500"></i> Anamnese</h3>
-                    <textarea id="symptoms-input" class="w-full h-48 bg-gray-50 rounded-2xl p-4 text-sm border-0 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ex: Paciente com tosse persistente há 3 dias, febre e catarro amarelado..."></textarea>
-                    <button onclick="runDiag()" class="w-full mt-6 btn-medical py-4 rounded-2xl font-bold shadow-lg shadow-blue-500/20">Analisar Caso</button>
+        <!-- View: Chat -->
+        <div id="view-chat" class="flex-1 flex flex-col p-8">
+            <div id="chat-window" class="chat-container flex flex-col gap-6 overflow-y-auto px-4 pb-4">
+                <!-- Mensagens aparecerão aqui -->
+                <div class="ai-bubble p-4 max-w-[80%] text-sm">
+                    Olá, Dr. Como posso auxiliar em sua conduta clínica hoje? Você pode descrever sintomas ou perguntar sobre interações.
                 </div>
+            </div>
 
-                <div class="space-y-4">
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Possíveis Condutas e Exames</h3>
-                    <div id="diag-results" class="space-y-4">
-                        <div class="text-center py-20 text-gray-400 italic text-sm">Aguardando entrada de dados do paciente...</div>
-                    </div>
-                </div>
+            <!-- Input do Chat -->
+            <div class="mt-auto flex gap-4 items-end bg-white p-4 rounded-3xl border shadow-sm">
+                <textarea id="chat-input" rows="1" class="flex-1 bg-transparent border-0 outline-none p-2 text-sm resize-none" placeholder="Digite sintomas ou suspeita clínica..."></textarea>
+                <button onclick="sendMessage()" class="bg-blue-600 text-white p-3 rounded-2xl hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+                    <i data-lucide="send" class="w-5 h-5"></i>
+                </button>
             </div>
         </div>
 
-        <!-- Agenda View (Hidden by default) -->
-        <div id="view-agenda" class="hidden space-y-8">
-            <header class="flex justify-between items-center">
-                <h1 class="text-3xl font-extrabold tracking-tight">Escala de Plantões</h1>
-                <button onclick="openDutyModal()" class="bg-blue-600 text-white px-6 py-2 rounded-xl text-sm font-bold">+ Novo Plantão</button>
-            </header>
-            
-            <div class="glass-card overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-50 border-b">
-                        <tr>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">Data</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">Profissional</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">Turno</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">Local</th>
-                        </tr>
-                    </thead>
-                    <tbody id="duty-table-body">
-                        <!-- Dinâmico -->
-                    </tbody>
-                </table>
+        <!-- View: Agenda -->
+        <div id="view-agenda" class="hidden flex-1 p-10 overflow-y-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-bold">Gerenciar Plantões</h3>
+                <button onclick="openModal()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-sm">+ Adicionar</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="schedule-grid">
+                <!-- Cards de agenda aqui -->
             </div>
         </div>
     </main>
 
-    <!-- Modal Adicionar Plantão (Simples) -->
-    <div id="duty-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div class="bg-white p-8 rounded-3xl w-96">
-            <h3 class="font-bold mb-6 text-xl">Novo Agendamento</h3>
+    <!-- Modal Agenda -->
+    <div id="modal-agenda" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-[32px] w-96 shadow-2xl">
+            <h3 class="text-xl font-bold mb-6">Novo Plantão</h3>
             <div class="space-y-4">
-                <input id="duty-name" type="text" placeholder="Seu Nome" class="w-full p-3 bg-gray-100 rounded-xl outline-none">
-                <input id="duty-date" type="date" class="w-full p-3 bg-gray-100 rounded-xl outline-none">
-                <select id="duty-shift" class="w-full p-3 bg-gray-100 rounded-xl outline-none">
-                    <option>Diurno (07h - 19h)</option>
-                    <option>Noturno (19h - 07h)</option>
-                    <option>24 Horas</option>
+                <input id="sched-date" type="date" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-blue-500">
+                <select id="sched-shift" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-blue-500">
+                    <option>Diurno (12h)</option>
+                    <option>Noturno (12h)</option>
+                    <option>Plantão 24h</option>
                 </select>
-                <input id="duty-loc" type="text" placeholder="Unidade (ex: Hospital Santa Cruz)" class="w-full p-3 bg-gray-100 rounded-xl outline-none">
-                <div class="flex gap-4 mt-6">
-                    <button onclick="closeDutyModal()" class="flex-1 bg-gray-200 py-3 rounded-xl font-bold">Cancelar</button>
-                    <button onclick="saveDuty()" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold">Salvar</button>
+                <input id="sched-loc" type="text" placeholder="Local/Hospital" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-blue-500">
+                <div class="flex gap-4 mt-4">
+                    <button onclick="closeModal()" class="flex-1 py-4 font-bold text-slate-500">Cancelar</button>
+                    <button onclick="saveSchedule()" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-bold">Confirmar</button>
                 </div>
             </div>
         </div>
@@ -121,72 +112,99 @@
     <script>
         const API = "http://localhost:8000";
 
-        function switchTab(tab) {
-            document.getElementById('view-diag').classList.toggle('hidden', tab !== 'diag');
-            document.getElementById('view-agenda').classList.toggle('hidden', tab !== 'agenda');
-            if(tab === 'agenda') loadDuties();
-        }
-
-        async function runDiag() {
-            const specialty = document.getElementById('specialty-selector').value;
-            const text = document.getElementById('symptoms-input').value;
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value;
             if(!text) return;
 
-            const res = await fetch(`${API}/clinical_ai`, {
+            // Renderiza user message
+            addBubble('user', text);
+            input.value = "";
+
+            const res = await fetch(`${API}/chat`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({specialty, text})
+                body: JSON.stringify({message: text})
             });
             const data = await res.json();
             
-            const resultsDiv = document.getElementById('diag-results');
-            if(data.results.length === 0) {
-                resultsDiv.innerHTML = '<div class="p-6 glass-card text-amber-600 text-sm font-bold">Sintomas inconclusivos para esta área. Recomenda-se exame físico detalhado.</div>';
-                return;
-            }
+            // Renderiza AI response
+            setTimeout(() => {
+                addBubble('ai', data.message);
+                if(data.cards.length > 0) {
+                    data.cards.forEach(card => addDiagCard(card));
+                }
+            }, 500);
+        }
 
-            resultsDiv.innerHTML = data.results.map(r => `
-                <div class="glass-card p-6 border-l-4 ${r.priority === 'Crítica' ? 'border-red-500' : 'border-blue-500'}">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Diagnóstico Provável</p>
-                    <h4 class="text-lg font-bold text-slate-800 mb-4">${r.possible_diagnosis}</h4>
-                    <div class="p-4 bg-blue-50 rounded-xl">
-                        <p class="text-[10px] font-bold text-blue-600 uppercase mb-1 italic">Exames Sugeridos</p>
-                        <p class="text-sm font-semibold">${r.suggested_exams}</p>
+        function addBubble(role, text) {
+            const win = document.getElementById('chat-window');
+            const b = document.createElement('div');
+            b.className = `${role}-bubble p-4 max-w-[80%] text-sm shadow-sm animate-in slide-in-from-bottom-2 duration-300`;
+            b.innerText = text;
+            win.appendChild(b);
+            win.scrollTop = win.scrollHeight;
+        }
+
+        function addDiagCard(card) {
+            const win = document.getElementById('chat-window');
+            const c = document.createElement('div');
+            c.className = `diag-card p-6 rounded-2xl max-w-[90%] mb-4 animate-in zoom-in-95 duration-300 ${card.urgency === 'Crítica' ? 'urgent-card' : ''}`;
+            c.innerHTML = `
+                <div class="flex justify-between mb-3">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-blue-600">${card.urgency}</span>
+                    <i data-lucide="shield-check" class="w-4 h-4 text-blue-400"></i>
+                </div>
+                <h4 class="font-bold text-lg mb-4 text-slate-800">${card.title}</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Exames Sugeridos</p>
+                        <p class="text-xs text-slate-600">${card.exams}</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Conduta Inicial</p>
+                        <p class="text-xs text-slate-600">${card.conduct}</p>
                     </div>
                 </div>
-            `).join('');
+            `;
+            win.appendChild(c);
             lucide.createIcons();
+            win.scrollTop = win.scrollHeight;
         }
 
-        function openDutyModal() { document.getElementById('duty-modal').classList.remove('hidden'); }
-        function closeDutyModal() { document.getElementById('duty-modal').classList.add('hidden'); }
+        function switchTab(tab) {
+            document.getElementById('view-chat').classList.toggle('hidden', tab !== 'chat');
+            document.getElementById('view-agenda').classList.toggle('hidden', tab !== 'agenda');
+            document.getElementById('tab-title').innerText = tab === 'chat' ? 'Assistente de Diagnóstico' : 'Minha Agenda';
+            if(tab === 'agenda') loadSchedule();
+        }
 
-        async function saveDuty() {
-            const doctor = document.getElementById('duty-name').value;
-            const date = document.getElementById('duty-date').value;
-            const shift = document.getElementById('duty-shift').value;
-            const location = document.getElementById('duty-loc').value;
+        function openModal() { document.getElementById('modal-agenda').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('modal-agenda').classList.add('hidden'); }
 
-            await fetch(`${API}/add_duty`, {
+        async function saveSchedule() {
+            const date = document.getElementById('sched-date').value;
+            const shift = document.getElementById('sched-shift').value;
+            const location = document.getElementById('sched-loc').value;
+            await fetch(`${API}/schedule`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({doctor, date, shift, location})
+                body: JSON.stringify({doctor: 'Dr. Vinicius', date, shift, location})
             });
-            closeDutyModal();
-            loadDuties();
+            closeModal();
+            loadSchedule();
         }
 
-        async function loadDuties() {
-            const res = await fetch(`${API}/get_duties`);
+        async function loadSchedule() {
+            const res = await fetch(`${API}/get_schedule`);
             const data = await res.json();
-            const tbody = document.getElementById('duty-table-body');
-            tbody.innerHTML = data.map(d => `
-                <tr class="border-b hover:bg-gray-50 transition">
-                    <td class="p-4 text-sm font-medium">${d.date}</td>
-                    <td class="p-4 text-sm">${d.doctor}</td>
-                    <td class="p-4 text-sm"><span class="px-2 py-1 bg-blue-100 text-blue-600 rounded text-[10px] font-bold">${d.shift}</span></td>
-                    <td class="p-4 text-sm text-gray-500">${d.location}</td>
-                </tr>
+            const grid = document.getElementById('schedule-grid');
+            grid.innerHTML = data.map(d => `
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                    <p class="text-xs font-bold text-blue-600 mb-2">${d.date}</p>
+                    <h4 class="font-bold text-slate-800">${d.location}</h4>
+                    <p class="text-xs text-slate-500 mt-1">${d.shift}</p>
+                </div>
             `).join('');
         }
 
